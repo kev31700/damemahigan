@@ -11,6 +11,7 @@ const Navigation = () => {
     { name: "Galerie", path: "/galerie" },
     { name: "Tarifs", path: "/tarifs" },
     { name: "Pratiques", path: "/pratiques" },
+    { name: "Témoignages", path: "/temoignages" },
     { name: "Contact", path: "/contact" },
   ];
 
@@ -20,7 +21,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
             <Link to="/" className="text-xl font-bold">
-              Logo
+              Dame Mahigan
             </Link>
           </div>
           
