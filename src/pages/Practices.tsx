@@ -22,15 +22,63 @@ const Practices = () => {
   const [practices, setPractices] = useState<Practice[]>([
     {
       id: 1,
-      title: "Pratique 1",
-      description: "Description détaillée de la pratique 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
+      title: "Trampling",
+      description: "Une pratique impliquant la pression et le contact des pieds, mettant en avant le jeu de domination et de soumission.",
+      imageUrl: "https://images.unsplash.com/photo-1542841791-1925b02a2bbb"
     },
     {
       id: 2,
-      title: "Pratique 2",
-      description: "Description détaillée de la pratique 2. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"
+      title: "CBT",
+      description: "Une pratique avancée de domination impliquant une stimulation contrôlée. Nécessite une expérience préalable.",
+      imageUrl: "https://images.unsplash.com/photo-1617791160505-6f00504e3519"
+    },
+    {
+      id: 3,
+      title: "Anal",
+      description: "Exploration des plaisirs et sensations à travers la stimulation anale, dans le respect des limites de chacun.",
+      imageUrl: "https://images.unsplash.com/photo-1584362917165-526a968579e8"
+    },
+    {
+      id: 4,
+      title: "Médical",
+      description: "Jeux de rôle médicaux dans un cadre sécurisé, explorant les dynamiques de pouvoir patient-praticien.",
+      imageUrl: "https://images.unsplash.com/photo-1585435557343-3b092031a831"
+    },
+    {
+      id: 5,
+      title: "Féminisation",
+      description: "Transformation et exploration de l'identité à travers l'expression féminine, dans un cadre bienveillant.",
+      imageUrl: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2"
+    },
+    {
+      id: 6,
+      title: "Bondage",
+      description: "Art du ligotage et de la restriction, pratiqué avec expertise et attention particulière à la sécurité.",
+      imageUrl: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4"
+    },
+    {
+      id: 7,
+      title: "Impact",
+      description: "Pratiques d'impact variées, du léger au plus intense, toujours dans le respect des limites établies.",
+      imageUrl: "https://images.unsplash.com/photo-1571019613576-2b22c76fd955"
+    },
+    {
+      id: 8,
+      title: "Fireplay",
+      description: "Jeu avec le feu sous supervision experte, créant des sensations uniques en toute sécurité.",
+      imageUrl: "https://images.unsplash.com/photo-1575876664317-c0dfefe911aa"
+    },
+    {
+      id: 9,
+      title: "Waxplay",
+      description: "Utilisation de la cire pour créer des sensations variées, pratiqué avec précision et contrôle.",
+      imageUrl: "https://images.unsplash.com/photo-1602525666213-4e9b0bc6ac95"
+    },
+    {
+      id: 10,
+      title: "Tickling",
+      description: "Exploration des sensations à travers le chatouillement, une pratique ludique de domination douce.",
+      imageUrl: "https://images.unsplash.com/photo-1517021897933-0e0319cfbc28"
     }
   ]);
 
