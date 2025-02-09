@@ -1,4 +1,6 @@
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ interface Practice {
 }
 
 const Practices = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [practices, setPractices] = useState<Practice[]>([
     {
@@ -114,7 +117,11 @@ const Practices = () => {
 
       <div className="grid gap-6 md:grid-cols-2">
         {practices.map((practice) => (
-          <Card key={practice.id}>
+          <Card 
+            key={practice.id}
+            className="cursor-pointer transition-transform hover:scale-105"
+            onClick={() => navigate(`/pratiques/${practice.id}`)}
+          >
             <CardHeader>
               <AspectRatio ratio={16 / 9} className="bg-muted">
                 <img
