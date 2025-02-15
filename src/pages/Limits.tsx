@@ -2,18 +2,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Limits = () => {
-  const hardLimits = [
-    "Scat",
-    "Insultes raciales",
-    "Animaux",
-    "Mineurs",
-    "Sang",
-    "Mutilation",
-    "Marques permanentes",
-    "Jeux dangereux",
-    "Unsafe sex"
-  ];
-
   const excludedPractices = [
     "Uro",
     "Scato",
@@ -38,24 +26,6 @@ const Limits = () => {
       </div>
 
       <div className="space-y-8 max-w-3xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-center text-primary">Limites absolues</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {hardLimits.map((limit) => (
-                <li 
-                  key={limit}
-                  className="flex items-center p-3 bg-muted rounded-lg"
-                >
-                  <span className="text-lg">{limit}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center text-primary">Pratiques exclues</CardTitle>
