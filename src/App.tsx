@@ -14,6 +14,7 @@ import PracticeDetail from "./pages/PracticeDetail";
 import Contact from "./pages/Contact";
 import Testimonials from "./pages/Testimonials";
 import NotFound from "./pages/NotFound";
+import Limits from "./pages/Limits";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/tarifs" element={<Pricing />} />
               <Route path="/pratiques" element={<Practices />} />
               <Route path="/pratiques/:id" element={<PracticeDetail />} />
+              <Route path="/limites" element={<Limits />} />
               <Route path="/temoignages" element={<Testimonials />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="*" element={<NotFound />} />
