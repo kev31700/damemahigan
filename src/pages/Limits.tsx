@@ -9,7 +9,8 @@ const Limits = () => {
     "Fellation",
     "Masturbation",
     "Accès à mon corps/intimité",
-    "Nudité"
+    "Nudité",
+    "Kidnapping"
   ];
 
   return (
