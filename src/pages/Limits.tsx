@@ -14,6 +14,16 @@ const Limits = () => {
     "Unsafe sex"
   ];
 
+  const excludedPractices = [
+    "Uro",
+    "Scato",
+    "Age play",
+    "Fellation",
+    "Masturbation",
+    "Accès à mon corps/intimité",
+    "Nudité"
+  ];
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -27,23 +37,43 @@ const Limits = () => {
         </p>
       </div>
 
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center text-primary">Limites absolues</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {hardLimits.map((limit) => (
-              <li 
-                key={limit}
-                className="flex items-center p-3 bg-muted rounded-lg"
-              >
-                <span className="text-lg">{limit}</span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="space-y-8 max-w-3xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-center text-primary">Limites absolues</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {hardLimits.map((limit) => (
+                <li 
+                  key={limit}
+                  className="flex items-center p-3 bg-muted rounded-lg"
+                >
+                  <span className="text-lg">{limit}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-center text-primary">Pratiques exclues</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {excludedPractices.map((practice) => (
+                <li 
+                  key={practice}
+                  className="flex items-center p-3 bg-muted rounded-lg"
+                >
+                  <span className="text-lg">{practice}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="max-w-3xl mx-auto mt-8 text-lg text-gray-600">
         <p className="mb-4">
