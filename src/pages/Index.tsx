@@ -26,12 +26,12 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center px-4">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center px-4 bg-background">
       <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
         Dame Mahigan
       </h1>
       
-      <div className="max-w-3xl mx-auto mb-12 space-y-6 text-lg text-gray-600">
+      <div className="max-w-3xl mx-auto mb-12 space-y-6 text-lg text-gray-300">
         <p className="leading-relaxed">
           Bienvenue dans mon univers sensuel et raffiné. Je suis Dame Mahigan, une dominatrice expérimentée qui privilégie l'écoute, la bienveillance et le respect mutuel.
         </p>
@@ -63,9 +63,9 @@ const Index = () => {
         </Carousel>
       </div>
 
-      <div className="w-16 h-0.5 bg-gray-200 my-12"></div>
+      <div className="w-16 h-0.5 bg-gray-700 my-12"></div>
 
-      <div className="max-w-3xl mx-auto mb-12 space-y-6 text-lg text-gray-600">
+      <div className="max-w-3xl mx-auto mb-12 space-y-6 text-lg text-gray-300">
         <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-primary">
           Le BDSM : Un Art de la Connexion
         </h2>
@@ -84,12 +84,12 @@ const Index = () => {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button asChild size="lg">
+        <Button asChild size="lg" className="bg-primary hover:bg-primary/80">
           <Link to="/pratiques">
             Découvrir mes Pratiques
           </Link>
         </Button>
-        <Button asChild variant="outline" size="lg">
+        <Button asChild variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/10">
           <Link to="/contact">
             Me Contacter
           </Link>
