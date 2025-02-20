@@ -1,8 +1,30 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const Index = () => {
+  const images = [
+    {
+      src: "/photo-1649972904349-6e44c42644a7",
+      alt: "Dame Mahigan Photo 1"
+    },
+    {
+      src: "/photo-1488590528505-98d2b5aba04b",
+      alt: "Dame Mahigan Photo 2"
+    },
+    {
+      src: "/photo-1518770660439-4636190af475",
+      alt: "Dame Mahigan Photo 3"
+    }
+  ];
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center px-4">
       <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -21,6 +43,24 @@ const Index = () => {
         <p className="leading-relaxed">
           Que vous soyez novice ou expérimenté, je saurai vous guider avec attention dans l'exploration de vos fantasmes, tout en veillant à votre bien-être et votre sécurité.
         </p>
+      </div>
+
+      <div className="w-full max-w-4xl mx-auto mb-12">
+        <Carousel className="w-full">
+          <CarouselContent>
+            {images.map((image, index) => (
+              <CarouselItem key={index}>
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="w-full h-[400px] object-cover rounded-lg"
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </div>
 
       <div className="w-16 h-0.5 bg-gray-200 my-12"></div>
