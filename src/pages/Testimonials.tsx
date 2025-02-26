@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTestimonials, addTestimonial, updateTestimonialResponse, type Testimonial } from "@/lib/firestore";
+import { getTestimonials, addTestimonial, updateTestimonialResponse, deleteTestimonial, type Testimonial } from "@/lib/firestore";
 
 const Testimonials = () => {
   const [newTestimonial, setNewTestimonial] = useState("");
@@ -40,6 +40,17 @@ const Testimonials = () => {
     }
   });
 
+  const deleteTestimonialMutation = useMutation({
+    mutationFn: deleteTestimonial,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      toast.success("Témoignage supprimé avec succès");
+    },
+    onError: () => {
+      toast.error("Une erreur est survenue lors de la suppression du témoignage");
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTestimonial.trim()) {
@@ -59,6 +70,12 @@ const Testimonials = () => {
     const response = prompt("Votre réponse:");
     if (response) {
       updateResponseMutation.mutate({ id: testimonialId, response });
+    }
+  };
+
+  const handleDelete = (testimonialId: string) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce témoignage ?")) {
+      deleteTestimonialMutation.mutate(testimonialId);
     }
   };
 
@@ -112,6 +129,8 @@ const Testimonials = () => {
                 <Button
                   variant="destructive"
                   size="sm"
+                  onClick={() => handleDelete(testimonial.id!)}
+                  disabled={deleteTestimonialMutation.isPending}
                 >
                   Supprimer
                 </Button>

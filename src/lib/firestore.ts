@@ -1,6 +1,5 @@
-
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export interface Testimonial {
   id?: string;
@@ -48,6 +47,17 @@ export const updateTestimonialResponse = async (testimonialId: string, response:
     return { response };
   } catch (error) {
     console.error('Error updating testimonial response: ', error);
+    throw error;
+  }
+};
+
+export const deleteTestimonial = async (testimonialId: string) => {
+  try {
+    const testimonialRef = doc(db, 'testimonials', testimonialId);
+    await deleteDoc(testimonialRef);
+    return { id: testimonialId };
+  } catch (error) {
+    console.error('Error deleting testimonial: ', error);
     throw error;
   }
 };
