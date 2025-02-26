@@ -8,84 +8,46 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
-
-interface Practice {
-  id: number;
-  title: string;
-  description: string;
-  imageUrl: string;
-}
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getPractices, addPractice, type Practice } from "@/lib/firestore";
 
 const Practices = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [practices, setPractices] = useState<Practice[]>([
-    {
-      id: 1,
-      title: "Trampling",
-      description: "Une pratique impliquant la pression et le contact des pieds, mettant en avant le jeu de domination et de soumission.",
-      imageUrl: "https://images.unsplash.com/photo-1542841791-1925b02a2bbb"
-    },
-    {
-      id: 2,
-      title: "CBT",
-      description: "Une pratique avancée de domination impliquant une stimulation contrôlée. Nécessite une expérience préalable.",
-      imageUrl: "https://images.unsplash.com/photo-1617791160505-6f00504e3519"
-    },
-    {
-      id: 3,
-      title: "Anal",
-      description: "Exploration des plaisirs et sensations à travers la stimulation anale, dans le respect des limites de chacun.",
-      imageUrl: "https://images.unsplash.com/photo-1584362917165-526a968579e8"
-    },
-    {
-      id: 4,
-      title: "Médical",
-      description: "Jeux de rôle médicaux dans un cadre sécurisé, explorant les dynamiques de pouvoir patient-praticien.",
-      imageUrl: "https://images.unsplash.com/photo-1585435557343-3b092031a831"
-    },
-    {
-      id: 5,
-      title: "Féminisation",
-      description: "Transformation et exploration de l'identité à travers l'expression féminine, dans un cadre bienveillant.",
-      imageUrl: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2"
-    },
-    {
-      id: 6,
-      title: "Bondage",
-      description: "Art du ligotage et de la restriction, pratiqué avec expertise et attention particulière à la sécurité.",
-      imageUrl: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4"
-    },
-    {
-      id: 7,
-      title: "Impact",
-      description: "Pratiques d'impact variées, du léger au plus intense, toujours dans le respect des limites établies.",
-      imageUrl: "https://images.unsplash.com/photo-1571019613576-2b22c76fd955"
-    },
-    {
-      id: 8,
-      title: "Fireplay",
-      description: "Jeu avec le feu sous supervision experte, créant des sensations uniques en toute sécurité.",
-      imageUrl: "https://images.unsplash.com/photo-1575876664317-c0dfefe911aa"
-    },
-    {
-      id: 9,
-      title: "Waxplay",
-      description: "Utilisation de la cire pour créer des sensations variées, pratiqué avec précision et contrôle.",
-      imageUrl: "https://images.unsplash.com/photo-1602525666213-4e9b0bc6ac95"
-    },
-    {
-      id: 10,
-      title: "Tickling",
-      description: "Exploration des sensations à travers le chatouillement, une pratique ludique de domination douce.",
-      imageUrl: "https://images.unsplash.com/photo-1517021897933-0e0319cfbc28"
-    }
-  ]);
+  const queryClient = useQueryClient();
 
   const [newPractice, setNewPractice] = useState({
     title: "",
     description: "",
     imageUrl: ""
+  });
+
+  const { data: practices = [], isLoading } = useQuery({
+    queryKey: ['practices'],
+    queryFn: getPractices
+  });
+
+  const addPracticeMutation = useMutation({
+    mutationFn: addPractice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['practices'] });
+      toast({
+        title: "Succès",
+        description: "La pratique a été ajoutée avec succès"
+      });
+      setNewPractice({
+        title: "",
+        description: "",
+        imageUrl: ""
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout de la pratique",
+        variant: "destructive"
+      });
+    }
   });
 
   const handleAddPractice = () => {
@@ -98,25 +60,12 @@ const Practices = () => {
       return;
     }
 
-    setPractices([
-      ...practices,
-      {
-        id: practices.length + 1,
-        ...newPractice
-      }
-    ]);
-
-    setNewPractice({
-      title: "",
-      description: "",
-      imageUrl: ""
-    });
-
-    toast({
-      title: "Succès",
-      description: "La pratique a été ajoutée avec succès"
-    });
+    addPracticeMutation.mutate(newPractice);
   };
+
+  if (isLoading) {
+    return <div className="text-center mt-8">Chargement...</div>;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -155,8 +104,12 @@ const Practices = () => {
                   placeholder="URL de l'image"
                 />
               </div>
-              <Button onClick={handleAddPractice} className="w-full">
-                Ajouter
+              <Button 
+                onClick={handleAddPractice} 
+                className="w-full"
+                disabled={addPracticeMutation.isPending}
+              >
+                {addPracticeMutation.isPending ? "Ajout en cours..." : "Ajouter"}
               </Button>
             </div>
           </SheetContent>
@@ -181,7 +134,7 @@ const Practices = () => {
               <CardTitle>{practice.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">{practice.description}</p>
+              <p className="text-gray-300">{practice.description}</p>
             </CardContent>
           </Card>
         ))}

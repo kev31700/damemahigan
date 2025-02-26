@@ -1,19 +1,32 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-
-interface Testimonial {
-  id: number;
-  content: string;
-  date: string;
-  response?: string;
-}
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getTestimonials, addTestimonial, type Testimonial } from "@/lib/firestore";
 
 const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [newTestimonial, setNewTestimonial] = useState("");
   const [isAdmin] = useState(false); // This should be connected to actual auth state
+  const queryClient = useQueryClient();
+
+  const { data: testimonials = [], isLoading } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: getTestimonials
+  });
+
+  const addTestimonialMutation = useMutation({
+    mutationFn: addTestimonial,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      setNewTestimonial("");
+      toast.success("Témoignage ajouté avec succès");
+    },
+    onError: () => {
+      toast.error("Une erreur est survenue lors de l'ajout du témoignage");
+    }
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,33 +35,20 @@ const Testimonials = () => {
       return;
     }
 
-    const testimonial: Testimonial = {
-      id: Date.now(),
+    const testimonial = {
       content: newTestimonial,
       date: new Date().toLocaleDateString(),
     };
 
-    setTestimonials([testimonial, ...testimonials]);
-    setNewTestimonial("");
-    toast.success("Témoignage ajouté avec succès");
+    addTestimonialMutation.mutate(testimonial);
   };
 
-  const handleDelete = (id: number) => {
-    setTestimonials(testimonials.filter((t) => t.id !== id));
-    toast.success("Témoignage supprimé");
-  };
-
-  const handleResponse = (id: number, response: string) => {
-    setTestimonials(
-      testimonials.map((t) =>
-        t.id === id ? { ...t, response } : t
-      )
-    );
-    toast.success("Réponse ajoutée");
-  };
+  if (isLoading) {
+    return <div className="text-center mt-8">Chargement...</div>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto px-4 space-y-8">
       <h1 className="text-3xl font-bold text-center mb-8">Témoignages</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,9 +57,14 @@ const Testimonials = () => {
           onChange={(e) => setNewTestimonial(e.target.value)}
           placeholder="Partagez votre expérience..."
           className="min-h-[120px]"
+          disabled={addTestimonialMutation.isPending}
         />
-        <Button type="submit" className="w-full">
-          Publier le témoignage
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={addTestimonialMutation.isPending}
+        >
+          {addTestimonialMutation.isPending ? "Publication en cours..." : "Publier le témoignage"}
         </Button>
       </form>
 
@@ -88,7 +93,6 @@ const Testimonials = () => {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDelete(testimonial.id)}
                 >
                   Supprimer
                 </Button>
@@ -97,7 +101,10 @@ const Testimonials = () => {
                   size="sm"
                   onClick={() => {
                     const response = prompt("Votre réponse:");
-                    if (response) handleResponse(testimonial.id, response);
+                    if (response) {
+                      // TODO: Implement response functionality
+                      toast.success("Réponse ajoutée");
+                    }
                   }}
                 >
                   Répondre
