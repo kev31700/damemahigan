@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTestimonials, addTestimonial, type Testimonial } from "@/lib/firestore";
+import { getTestimonials, addTestimonial, updateTestimonialResponse, type Testimonial } from "@/lib/firestore";
 
 const Testimonials = () => {
   const [newTestimonial, setNewTestimonial] = useState("");
@@ -28,6 +28,18 @@ const Testimonials = () => {
     }
   });
 
+  const updateResponseMutation = useMutation({
+    mutationFn: ({ id, response }: { id: string; response: string }) => 
+      updateTestimonialResponse(id, response),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      toast.success("Réponse ajoutée avec succès");
+    },
+    onError: () => {
+      toast.error("Une erreur est survenue lors de l'ajout de la réponse");
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTestimonial.trim()) {
@@ -41,6 +53,13 @@ const Testimonials = () => {
     };
 
     addTestimonialMutation.mutate(testimonial);
+  };
+
+  const handleResponse = (testimonialId: string) => {
+    const response = prompt("Votre réponse:");
+    if (response) {
+      updateResponseMutation.mutate({ id: testimonialId, response });
+    }
   };
 
   if (isLoading) {
@@ -88,7 +107,7 @@ const Testimonials = () => {
               </div>
             )}
 
-            {isAdmin && (
+            {isAdmin && testimonial.id && (
               <div className="flex gap-2">
                 <Button
                   variant="destructive"
@@ -99,13 +118,8 @@ const Testimonials = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const response = prompt("Votre réponse:");
-                    if (response) {
-                      // TODO: Implement response functionality
-                      toast.success("Réponse ajoutée");
-                    }
-                  }}
+                  onClick={() => handleResponse(testimonial.id!)}
+                  disabled={updateResponseMutation.isPending}
                 >
                   Répondre
                 </Button>

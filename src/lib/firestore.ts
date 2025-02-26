@@ -1,6 +1,6 @@
 
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 
 export interface Testimonial {
   id?: string;
@@ -37,6 +37,17 @@ export const getTestimonials = async (): Promise<Testimonial[]> => {
     } as Testimonial));
   } catch (error) {
     console.error('Error getting testimonials: ', error);
+    throw error;
+  }
+};
+
+export const updateTestimonialResponse = async (testimonialId: string, response: string) => {
+  try {
+    const testimonialRef = doc(db, 'testimonials', testimonialId);
+    await updateDoc(testimonialRef, { response });
+    return { response };
+  } catch (error) {
+    console.error('Error updating testimonial response: ', error);
     throw error;
   }
 };
