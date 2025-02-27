@@ -25,13 +25,13 @@ const App = () => {
           <main className="pt-16 pb-12">
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/practices" element={<Practices />} />
-              <Route path="/practices/:id" element={<PracticeDetail />} />
-              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/pratiques" element={<Practices />} />
+              <Route path="/pratiques/:id" element={<PracticeDetail />} />
+              <Route path="/tarifs" element={<Pricing />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/testimonials" element={<Testimonials />} />
-              <Route path="/limits" element={<Limits />} />
+              <Route path="/galerie" element={<Gallery />} />
+              <Route path="/temoignages" element={<Testimonials />} />
+              <Route path="/limites" element={<Limits />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
