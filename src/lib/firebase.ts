@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBANj7xlVOPEv8HawCprWQf1lNB5sejDFU",
   authDomain: "mahigan-bd7ae.firebaseapp.com",
   projectId: "mahigan-bd7ae",
-  storageBucket: "mahigan-bd7ae.firebasestorage.app",
+  storageBucket: "mahigan-bd7ae.appspot.com",
   messagingSenderId: "615958796849",
   appId: "1:615958796849:web:e76756d40780e90239d310",
   measurementId: "G-C3JWV7VFZ8"
