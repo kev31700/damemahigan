@@ -5,10 +5,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTestimonials, addTestimonial, updateTestimonialResponse, deleteTestimonial, type Testimonial } from "@/lib/firestore";
+import { useUser, SignInButton, SignOutButton } from "@clerk/clerk-react";
 
 const Testimonials = () => {
   const [newTestimonial, setNewTestimonial] = useState("");
-  const [isAdmin] = useState(false); // This should be connected to actual auth state
+  const { user, isSignedIn } = useUser();
+  // On considère que l'utilisateur est admin s'il est connecté avec l'email spécifié
+  const isAdmin = isSignedIn && user?.primaryEmailAddress?.emailAddress === "admin@damemahigan.com";
   const queryClient = useQueryClient();
 
   const { data: testimonials = [], isLoading } = useQuery({
@@ -85,7 +88,27 @@ const Testimonials = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 space-y-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Témoignages</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Témoignages</h1>
+        {isSignedIn ? (
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              {isAdmin ? "Mode administrateur" : "Connecté"}
+            </span>
+            <SignOutButton>
+              <Button variant="outline" size="sm">
+                Se déconnecter
+              </Button>
+            </SignOutButton>
+          </div>
+        ) : (
+          <SignInButton mode="modal">
+            <Button variant="outline" size="sm">
+              Se connecter
+            </Button>
+          </SignInButton>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Textarea
