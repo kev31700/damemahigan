@@ -5,15 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTestimonials, addTestimonial, updateTestimonialResponse, deleteTestimonial, type Testimonial } from "@/lib/firestore";
+import { useAdmin } from "@/contexts/AdminContext";
 
 const Testimonials = () => {
   const [newTestimonial, setNewTestimonial] = useState("");
-  const [adminMode, setAdminMode] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
+  const { isAdmin } = useAdmin();
   const queryClient = useQueryClient();
-
-  // Mot de passe simple pour l'admin (dans un cas réel, utilisez une méthode plus sécurisée)
-  const ADMIN_PASSWORD = "admin123";
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ['testimonials'],
@@ -83,53 +80,13 @@ const Testimonials = () => {
     }
   };
 
-  const handleAdminLogin = () => {
-    if (adminPassword === ADMIN_PASSWORD) {
-      setAdminMode(true);
-      toast.success("Mode administrateur activé");
-    } else {
-      toast.error("Mot de passe incorrect");
-    }
-  };
-
-  const handleAdminLogout = () => {
-    setAdminMode(false);
-    setAdminPassword("");
-    toast.success("Mode administrateur désactivé");
-  };
-
   if (isLoading) {
     return <div className="text-center mt-8">Chargement...</div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 space-y-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Témoignages</h1>
-        {adminMode ? (
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Mode administrateur
-            </span>
-            <Button variant="outline" size="sm" onClick={handleAdminLogout}>
-              Se déconnecter
-            </Button>
-          </div>
-        ) : (
-          <div className="flex gap-2 items-center">
-            <input
-              type="password"
-              placeholder="Mot de passe admin"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              className="px-3 py-1 border rounded text-sm"
-            />
-            <Button variant="outline" size="sm" onClick={handleAdminLogin}>
-              Connexion admin
-            </Button>
-          </div>
-        )}
-      </div>
+      <h1 className="text-3xl font-bold mb-8">Témoignages</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Textarea
@@ -168,7 +125,7 @@ const Testimonials = () => {
               </div>
             )}
 
-            {adminMode && testimonial.id && (
+            {isAdmin && testimonial.id && (
               <div className="flex gap-2">
                 <Button
                   variant="destructive"

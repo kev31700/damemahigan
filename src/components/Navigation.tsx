@@ -2,10 +2,22 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Lock, LogOut } from "lucide-react";
+import { useAdmin } from "@/contexts/AdminContext";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const { isAdmin, login, logout } = useAdmin();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const navItems = [
     { name: "Accueil", path: "/" },
@@ -16,6 +28,12 @@ const Navigation = () => {
     { name: "Témoignages", path: "/temoignages" },
     { name: "Contact", path: "/contact" },
   ];
+
+  const handleLogin = () => {
+    login(adminPassword);
+    setAdminPassword("");
+    setDialogOpen(false);
+  };
 
   return (
     <nav className="bg-primary text-primary-foreground">
@@ -28,7 +46,7 @@ const Navigation = () => {
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex md:items-center">
             <div className="ml-10 flex items-baseline space-x-4">
               {navItems.map((item) => (
                 <Link
@@ -40,10 +58,94 @@ const Navigation = () => {
                 </Link>
               ))}
             </div>
+            
+            {isAdmin ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={logout}
+                className="ml-4 flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Déconnexion Admin</span>
+              </Button>
+            ) : (
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="ml-4 flex items-center gap-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                    <span>Admin</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Connexion administrateur</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <Input
+                      type="password"
+                      placeholder="Mot de passe administrateur"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleLogin();
+                      }}
+                    />
+                    <Button onClick={handleLogin} className="w-full">Se connecter</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
+            {isAdmin && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={logout}
+                className="mr-2"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {!isAdmin && (
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="mr-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Connexion administrateur</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <Input
+                      type="password"
+                      placeholder="Mot de passe administrateur"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleLogin();
+                      }}
+                    />
+                    <Button onClick={handleLogin} className="w-full">Se connecter</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            
             <Button
               variant="ghost"
               size="icon"
