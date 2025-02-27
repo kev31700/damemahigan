@@ -5,14 +5,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTestimonials, addTestimonial, updateTestimonialResponse, deleteTestimonial, type Testimonial } from "@/lib/firestore";
-import { useUser, SignInButton, SignOutButton } from "@clerk/clerk-react";
 
 const Testimonials = () => {
   const [newTestimonial, setNewTestimonial] = useState("");
-  const { user, isSignedIn } = useUser();
-  // On considère que l'utilisateur est admin s'il est connecté avec l'email spécifié
-  const isAdmin = isSignedIn && user?.primaryEmailAddress?.emailAddress === "admin@damemahigan.com";
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
   const queryClient = useQueryClient();
+
+  // Mot de passe simple pour l'admin (dans un cas réel, utilisez une méthode plus sécurisée)
+  const ADMIN_PASSWORD = "admin123";
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ['testimonials'],
@@ -82,6 +83,21 @@ const Testimonials = () => {
     }
   };
 
+  const handleAdminLogin = () => {
+    if (adminPassword === ADMIN_PASSWORD) {
+      setAdminMode(true);
+      toast.success("Mode administrateur activé");
+    } else {
+      toast.error("Mot de passe incorrect");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setAdminMode(false);
+    setAdminPassword("");
+    toast.success("Mode administrateur désactivé");
+  };
+
   if (isLoading) {
     return <div className="text-center mt-8">Chargement...</div>;
   }
@@ -90,23 +106,28 @@ const Testimonials = () => {
     <div className="max-w-4xl mx-auto px-4 space-y-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Témoignages</h1>
-        {isSignedIn ? (
+        {adminMode ? (
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
-              {isAdmin ? "Mode administrateur" : "Connecté"}
+              Mode administrateur
             </span>
-            <SignOutButton>
-              <Button variant="outline" size="sm">
-                Se déconnecter
-              </Button>
-            </SignOutButton>
+            <Button variant="outline" size="sm" onClick={handleAdminLogout}>
+              Se déconnecter
+            </Button>
           </div>
         ) : (
-          <SignInButton mode="modal">
-            <Button variant="outline" size="sm">
-              Se connecter
+          <div className="flex gap-2 items-center">
+            <input
+              type="password"
+              placeholder="Mot de passe admin"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              className="px-3 py-1 border rounded text-sm"
+            />
+            <Button variant="outline" size="sm" onClick={handleAdminLogin}>
+              Connexion admin
             </Button>
-          </SignInButton>
+          </div>
         )}
       </div>
 
@@ -147,7 +168,7 @@ const Testimonials = () => {
               </div>
             )}
 
-            {isAdmin && testimonial.id && (
+            {adminMode && testimonial.id && (
               <div className="flex gap-2">
                 <Button
                   variant="destructive"
