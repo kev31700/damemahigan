@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -11,11 +11,13 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPractices, addPractice, type Practice } from "@/lib/firestore";
 import { useAdmin } from "@/contexts/AdminContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Practices = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newPractice, setNewPractice] = useState({
     title: "",
@@ -53,6 +55,29 @@ const Practices = () => {
     }
 
     addPracticeMutation.mutate(newPractice);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageDataUrl = e.target?.result as string;
+      setNewPractice({
+        ...newPractice,
+        imageUrl: imageDataUrl
+      });
+      
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    };
+    
+    reader.readAsDataURL(file);
   };
 
   if (isLoading) {
@@ -97,14 +122,42 @@ const Practices = () => {
                     placeholder="Description détaillée de la pratique"
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium">URL de l'image</label>
-                  <Input
-                    value={newPractice.imageUrl}
-                    onChange={(e) => setNewPractice({ ...newPractice, imageUrl: e.target.value })}
-                    placeholder="URL de l'image"
-                  />
-                </div>
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload">Mon album photo</TabsTrigger>
+                    <TabsTrigger value="url">URL</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="upload">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Sélectionner une photo</label>
+                      <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="url">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">URL de l'image</label>
+                      <Input
+                        value={newPractice.imageUrl}
+                        onChange={(e) => setNewPractice({ ...newPractice, imageUrl: e.target.value })}
+                        placeholder="URL de l'image"
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                {newPractice.imageUrl && (
+                  <div className="mt-2 border rounded overflow-hidden max-h-[100px]">
+                    <img 
+                      src={newPractice.imageUrl} 
+                      alt="Aperçu" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <Button 
                   onClick={handleAddPractice} 
                   className="w-full"
