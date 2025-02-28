@@ -1,87 +1,65 @@
 
-import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-
-export interface Testimonial {
-  id?: string;
-  content: string;
-  date: string;
-  response?: string;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Practice {
-  id?: string;
+  id: string;
   title: string;
   description: string;
   imageUrl: string;
   longDescription?: string;
 }
 
-export const addTestimonial = async (testimonial: Omit<Testimonial, 'id'>) => {
-  try {
-    const docRef = await addDoc(collection(db, 'testimonials'), testimonial);
-    return { ...testimonial, id: docRef.id };
-  } catch (error) {
-    console.error('Error adding testimonial: ', error);
-    throw error;
-  }
-};
-
-export const getTestimonials = async (): Promise<Testimonial[]> => {
-  try {
-    const q = query(collection(db, 'testimonials'), orderBy('date', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Testimonial));
-  } catch (error) {
-    console.error('Error getting testimonials: ', error);
-    throw error;
-  }
-};
-
-export const updateTestimonialResponse = async (testimonialId: string, response: string) => {
-  try {
-    const testimonialRef = doc(db, 'testimonials', testimonialId);
-    await updateDoc(testimonialRef, { response });
-    return { response };
-  } catch (error) {
-    console.error('Error updating testimonial response: ', error);
-    throw error;
-  }
-};
-
-export const deleteTestimonial = async (testimonialId: string) => {
-  try {
-    const testimonialRef = doc(db, 'testimonials', testimonialId);
-    await deleteDoc(testimonialRef);
-    return { id: testimonialId };
-  } catch (error) {
-    console.error('Error deleting testimonial: ', error);
-    throw error;
-  }
-};
-
-export const addPractice = async (practice: Omit<Practice, 'id'>) => {
-  try {
-    const docRef = await addDoc(collection(db, 'practices'), practice);
-    return { ...practice, id: docRef.id };
-  } catch (error) {
-    console.error('Error adding practice: ', error);
-    throw error;
-  }
-};
-
 export const getPractices = async (): Promise<Practice[]> => {
-  try {
-    const querySnapshot = await getDocs(collection(db, 'practices'));
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Practice));
-  } catch (error) {
-    console.error('Error getting practices: ', error);
+  const { data, error } = await supabase
+    .from('practices')
+    .select('*');
+
+  if (error) {
+    console.error("Erreur lors de la récupération des pratiques:", error);
     throw error;
   }
+
+  return data.map(item => ({
+    id: item.id.toString(),
+    title: item.title,
+    description: item.description,
+    imageUrl: item.imageUrl || '/placeholder.svg',
+    longDescription: item.longDescription || ''
+  }));
+};
+
+export const addPractice = async (practice: Omit<Practice, "id">): Promise<void> => {
+  const { error } = await supabase
+    .from('practices')
+    .insert([practice]);
+
+  if (error) {
+    console.error("Erreur lors de l'ajout d'une pratique:", error);
+    throw error;
+  }
+};
+
+export const getPracticeById = async (id: string): Promise<Practice | null> => {
+  const { data, error } = await supabase
+    .from('practices')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erreur lors de la récupération de la pratique:", error);
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    id: data.id.toString(),
+    title: data.title,
+    description: data.description,
+    imageUrl: data.imageUrl || '/placeholder.svg',
+    longDescription: data.longDescription || ''
+  };
 };

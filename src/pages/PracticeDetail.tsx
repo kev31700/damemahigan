@@ -5,23 +5,23 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getPractices } from "@/lib/firestore";
+import { getPracticeById } from "@/lib/firestore";
 
 const PracticeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: practices, isLoading } = useQuery({
-    queryKey: ['practices'],
-    queryFn: getPractices
+  
+  const { data: practice, isLoading, error } = useQuery({
+    queryKey: ['practice', id],
+    queryFn: () => id ? getPracticeById(id) : null,
+    enabled: !!id
   });
 
   if (isLoading) {
-    return <div>Chargement...</div>;
+    return <div className="container mx-auto px-4 py-8 text-center">Chargement...</div>;
   }
 
-  const practice = practices?.find(p => p.id === id);
-
-  if (!practice) {
+  if (error || !practice) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-4">Pratique non trouvée</h1>
@@ -54,8 +54,12 @@ const PracticeDetail = () => {
         <CardContent>
           <div className="space-y-4">
             <p className="text-lg text-gray-300">{practice.description}</p>
-            <h3 className="text-xl font-semibold">Description détaillée</h3>
-            <p className="text-gray-300">{practice.longDescription}</p>
+            {practice.longDescription && (
+              <>
+                <h3 className="text-xl font-semibold">Description détaillée</h3>
+                <p className="text-gray-300">{practice.longDescription}</p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
