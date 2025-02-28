@@ -8,9 +8,25 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useAdmin } from "@/contexts/AdminContext";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 
 const Index = () => {
-  const images = [
+  const { isAdmin } = useAdmin();
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [newImageAlt, setNewImageAlt] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const [images, setImages] = useState([
     {
       src: "/photo-1649972904349-6e44c42644a7",
       alt: "Dame Mahigan Photo 1"
@@ -23,7 +39,34 @@ const Index = () => {
       src: "/photo-1518770660439-4636190af475",
       alt: "Dame Mahigan Photo 3"
     }
-  ];
+  ]);
+
+  const addImage = () => {
+    if (!newImageUrl.trim()) {
+      toast.error("L'URL de l'image est requise");
+      return;
+    }
+
+    const newImage = {
+      src: newImageUrl,
+      alt: newImageAlt || "Dame Mahigan Photo"
+    };
+
+    setImages([...images, newImage]);
+    setNewImageUrl("");
+    setNewImageAlt("");
+    setDialogOpen(false);
+    toast.success("Image ajoutée avec succès");
+  };
+
+  const removeImage = (index: number) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette image ?")) {
+      const updatedImages = [...images];
+      updatedImages.splice(index, 1);
+      setImages(updatedImages);
+      toast.success("Image supprimée avec succès");
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center px-4 bg-background">
@@ -46,15 +89,60 @@ const Index = () => {
       </div>
 
       <div className="w-full max-w-4xl mx-auto mb-12">
+        {isAdmin && (
+          <div className="mb-4 flex justify-end">
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>Ajouter une image</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Ajouter une nouvelle image</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium">URL de l'image</label>
+                    <Input
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      placeholder="URL de l'image"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Description (alt text)</label>
+                    <Input
+                      value={newImageAlt}
+                      onChange={(e) => setNewImageAlt(e.target.value)}
+                      placeholder="Description de l'image"
+                    />
+                  </div>
+                  <Button onClick={addImage} className="w-full">Ajouter</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
         <Carousel className="w-full">
           <CarouselContent>
             {images.map((image, index) => (
               <CarouselItem key={index}>
-                <img
-                  src={image.src}
-                  alt={image.alt}
-                  className="w-full h-[400px] object-cover rounded-lg"
-                />
+                <div className="relative">
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="w-full h-[400px] object-cover rounded-lg"
+                  />
+                  {isAdmin && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => removeImage(index)}
+                    >
+                      Supprimer
+                    </Button>
+                  )}
+                </div>
               </CarouselItem>
             ))}
           </CarouselContent>
