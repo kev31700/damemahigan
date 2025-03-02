@@ -38,9 +38,11 @@ interface TestimonialRow {
 }
 
 export const getPractices = async (): Promise<Practice[]> => {
+  // Use type assertion to bypass TypeScript's static type checking
+  // as the practices table isn't defined in the Database type yet
   const { data, error } = await supabase
     .from('practices')
-    .select('*') as { data: PracticeRow[] | null; error: Error | null };
+    .select('*') as unknown as { data: PracticeRow[] | null; error: Error | null };
 
   if (error) {
     console.error("Erreur lors de la récupération des pratiques:", error);
@@ -57,9 +59,10 @@ export const getPractices = async (): Promise<Practice[]> => {
 };
 
 export const addPractice = async (practice: Omit<Practice, "id">): Promise<void> => {
+  // Use type assertion to bypass TypeScript's static type checking
   const { error } = await supabase
     .from('practices')
-    .insert([practice as unknown as PracticeRow]);
+    .insert([practice]) as unknown as { error: Error | null };
 
   if (error) {
     console.error("Erreur lors de l'ajout d'une pratique:", error);
@@ -68,11 +71,12 @@ export const addPractice = async (practice: Omit<Practice, "id">): Promise<void>
 };
 
 export const getPracticeById = async (id: string): Promise<Practice | null> => {
+  // Use type assertion to bypass TypeScript's static type checking
   const { data, error } = await supabase
     .from('practices')
     .select('*')
     .eq('id', parseInt(id))
-    .maybeSingle() as { data: PracticeRow | null; error: Error | null };
+    .maybeSingle() as unknown as { data: PracticeRow | null; error: Error | null };
 
   if (error) {
     console.error("Erreur lors de la récupération de la pratique:", error);
