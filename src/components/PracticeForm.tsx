@@ -64,7 +64,6 @@ const PracticeForm = ({ onSuccess }: PracticeFormProps) => {
         imageUrl: imageDataUrl
       });
       
-      // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -92,7 +91,7 @@ const PracticeForm = ({ onSuccess }: PracticeFormProps) => {
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Description longue</label>
+        <label className="text-sm font-medium">Description détaillée</label>
         <Textarea
           value={newPractice.longDescription || ""}
           onChange={(e) => setNewPractice({ ...newPractice, longDescription: e.target.value })}
