@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Type definition for practices
@@ -18,8 +17,8 @@ export interface Testimonial {
   response?: string;
 }
 
-// Interface pour représenter les données de la table practices dans Supabase
-interface PracticeRow {
+// Interface pour représenter les données de la table pratique dans Supabase
+interface PratiqueRow {
   id: number;
   title: string;
   description: string;
@@ -38,11 +37,10 @@ interface TestimonialRow {
 }
 
 export const getPractices = async (): Promise<Practice[]> => {
-  // Use type assertion to bypass TypeScript's static type checking
-  // as the practices table isn't defined in the Database type yet
+  // Use the correct table name "pratique" instead of "practices"
   const { data, error } = await supabase
-    .from('practices')
-    .select('*') as unknown as { data: PracticeRow[] | null; error: Error | null };
+    .from('pratique')
+    .select('*') as unknown as { data: PratiqueRow[] | null; error: Error | null };
 
   if (error) {
     console.error("Erreur lors de la récupération des pratiques:", error);
@@ -51,17 +49,17 @@ export const getPractices = async (): Promise<Practice[]> => {
 
   return (data || []).map(item => ({
     id: item.id.toString(),
-    title: item.title,
-    description: item.description,
+    title: item.title || '',
+    description: item.description || '',
     imageUrl: item.imageUrl || '/placeholder.svg',
     longDescription: item.longDescription || ''
   }));
 };
 
 export const addPractice = async (practice: Omit<Practice, "id">): Promise<void> => {
-  // Use type assertion to bypass TypeScript's static type checking
+  // Use the correct table name "pratique" instead of "practices"
   const { error } = await supabase
-    .from('practices')
+    .from('pratique')
     .insert([practice]) as unknown as { error: Error | null };
 
   if (error) {
@@ -71,12 +69,12 @@ export const addPractice = async (practice: Omit<Practice, "id">): Promise<void>
 };
 
 export const getPracticeById = async (id: string): Promise<Practice | null> => {
-  // Use type assertion to bypass TypeScript's static type checking
+  // Use the correct table name "pratique" instead of "practices"
   const { data, error } = await supabase
-    .from('practices')
+    .from('pratique')
     .select('*')
     .eq('id', parseInt(id))
-    .maybeSingle() as unknown as { data: PracticeRow | null; error: Error | null };
+    .maybeSingle() as unknown as { data: PratiqueRow | null; error: Error | null };
 
   if (error) {
     console.error("Erreur lors de la récupération de la pratique:", error);
@@ -89,8 +87,8 @@ export const getPracticeById = async (id: string): Promise<Practice | null> => {
 
   return {
     id: data.id.toString(),
-    title: data.title,
-    description: data.description,
+    title: data.title || '',
+    description: data.description || '',
     imageUrl: data.imageUrl || '/placeholder.svg',
     longDescription: data.longDescription || ''
   };
