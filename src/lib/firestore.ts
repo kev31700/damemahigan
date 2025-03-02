@@ -18,17 +18,36 @@ export interface Testimonial {
   response?: string;
 }
 
+// Interface pour représenter les données de la table practices dans Supabase
+interface PracticeRow {
+  id: number;
+  title: string;
+  description: string;
+  imageUrl: string;
+  longDescription?: string;
+  created_at: string;
+}
+
+// Interface pour représenter les données de la table testimonials dans Supabase
+interface TestimonialRow {
+  id: number;
+  content: string;
+  date?: string;
+  response?: string;
+  created_at: string;
+}
+
 export const getPractices = async (): Promise<Practice[]> => {
   const { data, error } = await supabase
     .from('practices')
-    .select('*');
+    .select('*') as { data: PracticeRow[] | null; error: Error | null };
 
   if (error) {
     console.error("Erreur lors de la récupération des pratiques:", error);
     throw error;
   }
 
-  return data.map(item => ({
+  return (data || []).map(item => ({
     id: item.id.toString(),
     title: item.title,
     description: item.description,
@@ -40,7 +59,7 @@ export const getPractices = async (): Promise<Practice[]> => {
 export const addPractice = async (practice: Omit<Practice, "id">): Promise<void> => {
   const { error } = await supabase
     .from('practices')
-    .insert([practice]);
+    .insert([practice as unknown as PracticeRow]);
 
   if (error) {
     console.error("Erreur lors de l'ajout d'une pratique:", error);
@@ -53,7 +72,7 @@ export const getPracticeById = async (id: string): Promise<Practice | null> => {
     .from('practices')
     .select('*')
     .eq('id', parseInt(id))
-    .maybeSingle();
+    .maybeSingle() as { data: PracticeRow | null; error: Error | null };
 
   if (error) {
     console.error("Erreur lors de la récupération de la pratique:", error);
@@ -78,25 +97,25 @@ export const getTestimonials = async (): Promise<Testimonial[]> => {
   const { data, error } = await supabase
     .from('testimonials')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: TestimonialRow[] | null; error: Error | null };
 
   if (error) {
     console.error("Erreur lors de la récupération des témoignages:", error);
     throw error;
   }
 
-  return data?.map(item => ({
+  return (data || []).map(item => ({
     id: item.id.toString(),
     content: item.content,
     date: item.date || new Date(item.created_at).toLocaleDateString(),
     response: item.response
-  })) || [];
+  }));
 };
 
 export const addTestimonial = async (testimonial: { content: string; date: string }): Promise<void> => {
   const { error } = await supabase
     .from('testimonials')
-    .insert([testimonial]);
+    .insert([testimonial as unknown as TestimonialRow]);
 
   if (error) {
     console.error("Erreur lors de l'ajout d'un témoignage:", error);
@@ -107,7 +126,7 @@ export const addTestimonial = async (testimonial: { content: string; date: strin
 export const updateTestimonialResponse = async (id: string, response: string): Promise<void> => {
   const { error } = await supabase
     .from('testimonials')
-    .update({ response })
+    .update({ response } as unknown as TestimonialRow)
     .eq('id', parseInt(id));
 
   if (error) {

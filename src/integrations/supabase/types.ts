@@ -24,6 +24,30 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          content: string
+          created_at: string | null
+          date: string | null
+          id: number
+          response: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          date?: string | null
+          id?: number
+          response?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          date?: string | null
+          id?: number
+          response?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
