@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Type definition for practices
@@ -60,7 +61,12 @@ export const addPractice = async (practice: Omit<Practice, "id">): Promise<void>
   // Use the correct table name "pratique" instead of "practices"
   const { error } = await supabase
     .from('pratique')
-    .insert([practice]) as unknown as { error: Error | null };
+    .insert([{
+      title: practice.title,
+      description: practice.description,
+      imageUrl: practice.imageUrl,
+      longDescription: practice.longDescription
+    }]);
 
   if (error) {
     console.error("Erreur lors de l'ajout d'une pratique:", error);
