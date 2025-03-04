@@ -48,6 +48,16 @@ export const addPractice = async (practice: Omit<Practice, "id">): Promise<void>
   }
 };
 
+export const deletePractice = async (id: string): Promise<void> => {
+  try {
+    const docRef = doc(practicesCollection, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la pratique:", error);
+    throw error;
+  }
+};
+
 export const getPracticeById = async (id: string): Promise<Practice | null> => {
   try {
     const docRef = doc(practicesCollection, id);
