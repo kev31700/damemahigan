@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Index from "@/pages/Index";
 import Practices from "@/pages/Practices";
@@ -13,11 +14,24 @@ import Testimonials from "@/pages/Testimonials";
 import Limits from "@/pages/Limits";
 import NotFound from "@/pages/NotFound";
 import { AdminProvider } from "@/contexts/AdminContext";
+import { initializeFirebase } from "./lib/firebase";
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1
+    }
+  }
+});
 
 const App = () => {
+  useEffect(() => {
+    // Initialize Firebase data if needed
+    initializeFirebase();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AdminProvider>
