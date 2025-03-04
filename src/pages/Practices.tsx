@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getPractices } from "@/lib/firestore";
+import { getPractices } from "@/lib/storage";
 import { useAdmin } from "@/contexts/AdminContext";
 import PracticeCard from "@/components/PracticeCard";
 import AddPracticeModal from "@/components/AddPracticeModal";

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addPractice } from "@/lib/firestore";
+import { addPractice } from "@/lib/storage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PracticeFormProps {

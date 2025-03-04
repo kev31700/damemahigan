@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Practice } from "@/lib/firestore";
+import { Practice } from "@/lib/storage";
 
 interface PracticeCardProps {
   practice: Practice;

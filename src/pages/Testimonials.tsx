@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTestimonials, addTestimonial, updateTestimonialResponse, deleteTestimonial, type Testimonial } from "@/lib/firestore";
+import { getTestimonials, addTestimonial, updateTestimonialResponse, deleteTestimonial, type Testimonial } from "@/lib/storage";
 import { useAdmin } from "@/contexts/AdminContext";
 
 const Testimonials = () => {

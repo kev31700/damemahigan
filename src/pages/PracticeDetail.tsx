@@ -5,7 +5,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getPracticeById } from "@/lib/firestore";
+import { getPracticeById } from "@/lib/storage";
 
 const PracticeDetail = () => {
   const { id } = useParams();
