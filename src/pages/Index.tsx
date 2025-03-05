@@ -20,6 +20,8 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getCarouselImages, addCarouselImage, deleteCarouselImage } from "@/lib/storage";
 
 const Index = () => {
   const { isAdmin } = useAdmin();
@@ -27,21 +29,42 @@ const Index = () => {
   const [newImageAlt, setNewImageAlt] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
-  const [images, setImages] = useState([
-    {
-      src: "/photo-1649972904349-6e44c42644a7",
-      alt: "Dame Mahigan Photo 1"
+  // Fetch carousel images from Firebase
+  const { data: carouselImages = [], isLoading } = useQuery({
+    queryKey: ['carouselImages'],
+    queryFn: getCarouselImages
+  });
+
+  // Add image mutation
+  const addImageMutation = useMutation({
+    mutationFn: addCarouselImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['carouselImages'] });
+      setNewImageUrl("");
+      setNewImageAlt("");
+      setDialogOpen(false);
+      toast.success("Image ajoutée avec succès");
     },
-    {
-      src: "/photo-1488590528505-98d2b5aba04b",
-      alt: "Dame Mahigan Photo 2"
-    },
-    {
-      src: "/photo-1518770660439-4636190af475",
-      alt: "Dame Mahigan Photo 3"
+    onError: (error) => {
+      toast.error("Erreur lors de l'ajout de l'image");
+      console.error(error);
     }
-  ]);
+  });
+
+  // Delete image mutation
+  const deleteImageMutation = useMutation({
+    mutationFn: deleteCarouselImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['carouselImages'] });
+      toast.success("Image supprimée avec succès");
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de la suppression de l'image");
+      console.error(error);
+    }
+  });
 
   const addImage = () => {
     if (!newImageUrl.trim()) {
@@ -54,11 +77,7 @@ const Index = () => {
       alt: newImageAlt || "Dame Mahigan Photo"
     };
 
-    setImages([...images, newImage]);
-    setNewImageUrl("");
-    setNewImageAlt("");
-    setDialogOpen(false);
-    toast.success("Image ajoutée avec succès");
+    addImageMutation.mutate(newImage);
   };
 
   const addImageFromFile = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,10 +95,7 @@ const Index = () => {
         alt: newImageAlt || file.name || "Dame Mahigan Photo"
       };
 
-      setImages([...images, newImage]);
-      toast.success("Image ajoutée avec succès");
-      setDialogOpen(false);
-      setNewImageAlt("");
+      addImageMutation.mutate(newImage);
       
       // Reset the file input
       if (fileInputRef.current) {
@@ -90,14 +106,13 @@ const Index = () => {
     reader.readAsDataURL(file);
   };
 
-  const removeImage = (index: number) => {
+  const removeImage = (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette image ?")) {
-      const updatedImages = [...images];
-      updatedImages.splice(index, 1);
-      setImages(updatedImages);
-      toast.success("Image supprimée avec succès");
+      deleteImageMutation.mutate(id);
     }
   };
+
+  if (isLoading) return <div className="container mx-auto px-4 py-8 text-center">Chargement...</div>;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center px-4 bg-background">
@@ -181,8 +196,8 @@ const Index = () => {
         )}
         <Carousel className="w-full">
           <CarouselContent>
-            {images.map((image, index) => (
-              <CarouselItem key={index}>
+            {carouselImages.map((image) => (
+              <CarouselItem key={image.id}>
                 <div className="relative">
                   <img
                     src={image.src}
@@ -194,7 +209,7 @@ const Index = () => {
                       variant="destructive"
                       size="sm"
                       className="absolute top-2 right-2"
-                      onClick={() => removeImage(index)}
+                      onClick={() => removeImage(image.id)}
                     >
                       Supprimer
                     </Button>

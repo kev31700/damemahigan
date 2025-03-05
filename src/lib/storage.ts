@@ -20,6 +20,12 @@ export interface GalleryImage {
   title: string;
 }
 
+export interface CarouselImage {
+  id: string;
+  src: string;
+  alt: string;
+}
+
 export interface Service {
   id: string;
   name: string;
@@ -41,6 +47,7 @@ const testimonialsCollection = collection(db, 'testimonials');
 const galleryCollection = collection(db, 'gallery');
 const servicesCollection = collection(db, 'services');
 const excludedPracticesCollection = collection(db, 'excludedPractices');
+const carouselImagesCollection = collection(db, 'carouselImages');
 
 // Practices-related functions
 export const getPractices = async (): Promise<Practice[]> => {
@@ -256,6 +263,42 @@ export const deleteExcludedPractice = async (id: string): Promise<void> => {
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Erreur lors de la suppression de la pratique exclue:", error);
+    throw error;
+  }
+};
+
+// Carousel Images related functions
+export const getCarouselImages = async (): Promise<CarouselImage[]> => {
+  try {
+    const snapshot = await getDocs(carouselImagesCollection);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id
+      } as CarouselImage;
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des images du carousel:", error);
+    return [];
+  }
+};
+
+export const addCarouselImage = async (image: Omit<CarouselImage, "id">): Promise<void> => {
+  try {
+    await addDoc(carouselImagesCollection, image);
+  } catch (error) {
+    console.error("Erreur lors de l'ajout d'une image au carousel:", error);
+    throw error;
+  }
+};
+
+export const deleteCarouselImage = async (id: string): Promise<void> => {
+  try {
+    const docRef = doc(carouselImagesCollection, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'image du carousel:", error);
     throw error;
   }
 };

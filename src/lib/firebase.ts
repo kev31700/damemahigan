@@ -1,7 +1,6 @@
-
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
-import { Practice, Testimonial, GalleryImage, Service, ExcludedPractice } from './storage';
+import { Practice, Testimonial, GalleryImage, Service, ExcludedPractice, CarouselImage } from './storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBANj7xlVOPEv8HawCprWQf1lNB5sejDFU",
@@ -23,6 +22,7 @@ const testimonialsCollection = collection(db, 'testimonials');
 const galleryCollection = collection(db, 'gallery');
 const servicesCollection = collection(db, 'services');
 const excludedPracticesCollection = collection(db, 'excludedPractices');
+const carouselImagesCollection = collection(db, 'carouselImages');
 
 // Initial data for first-time setup
 const initialPractices: Practice[] = [
@@ -314,6 +314,24 @@ const initialExcludedPractices: ExcludedPractice[] = [
   }
 ];
 
+const initialCarouselImages: CarouselImage[] = [
+  {
+    id: "1",
+    src: "/photo-1649972904349-6e44c42644a7",
+    alt: "Dame Mahigan Photo 1"
+  },
+  {
+    id: "2",
+    src: "/photo-1488590528505-98d2b5aba04b",
+    alt: "Dame Mahigan Photo 2"
+  },
+  {
+    id: "3",
+    src: "/photo-1518770660439-4636190af475",
+    alt: "Dame Mahigan Photo 3"
+  }
+];
+
 // Helper function to initialize collections if they're empty
 export const initializeFirebase = async () => {
   try {
@@ -354,6 +372,14 @@ export const initializeFirebase = async () => {
       console.log("Initializing excluded practices collection...");
       for (const practice of initialExcludedPractices) {
         await addDoc(excludedPracticesCollection, practice);
+      }
+    }
+
+    const carouselImagesSnapshot = await getDocs(carouselImagesCollection);
+    if (carouselImagesSnapshot.empty) {
+      console.log("Initializing carousel images collection...");
+      for (const image of initialCarouselImages) {
+        await addDoc(carouselImagesCollection, image);
       }
     }
   } catch (error) {
