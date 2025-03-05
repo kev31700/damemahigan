@@ -23,6 +23,7 @@ const galleryCollection = collection(db, 'gallery');
 const servicesCollection = collection(db, 'services');
 const excludedPracticesCollection = collection(db, 'excludedPractices');
 const carouselImagesCollection = collection(db, 'carouselImages');
+const contactFormsCollection = collection(db, 'contactForms');
 
 // Initial data for first-time setup
 const initialPractices: Practice[] = [

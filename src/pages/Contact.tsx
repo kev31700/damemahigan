@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,17 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { saveContactForm } from "@/lib/storage";
+import { Loader2 } from "lucide-react";
+import emailjs from 'emailjs-com';
+
+const EMAILJS_SERVICE_ID = "service_0f9n6tj";
+const EMAILJS_TEMPLATE_ID = "template_2kx66e9";
+const EMAILJS_USER_ID = "oDx-jv8_vOqJh7Pso";
 
 const Contact = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     nameOrPseudo: "",
     age: "",
@@ -25,27 +33,66 @@ const Contact = () => {
     sessionDuration: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    emailjs.init(EMAILJS_USER_ID);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    toast({
-      title: "Message envoyé",
-      description: "Nous vous répondrons dans les plus brefs délais.",
-    });
-    setFormData({
-      nameOrPseudo: "",
-      age: "",
-      height: "",
-      weight: "",
-      experienceLevel: "",
-      desiredPractices: "",
-      limits: "",
-      fetishSpecification: "",
-      email: "",
-      phone: "",
-      contactPreference: "",
-      sessionDuration: "",
-    });
+    setIsSubmitting(true);
+    try {
+      const formId = await saveContactForm(formData);
+      console.log("Form saved to Firebase with ID:", formId);
+      
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          name: formData.nameOrPseudo,
+          age: formData.age,
+          height: formData.height,
+          weight: formData.weight,
+          experience_level: formData.experienceLevel,
+          desired_practices: formData.desiredPractices,
+          limits: formData.limits,
+          fetish_specification: formData.fetishSpecification || "Non spécifié",
+          email: formData.email,
+          phone: formData.phone,
+          contact_preference: formData.contactPreference,
+          session_duration: formData.sessionDuration,
+          recipient: "l.j.mahigan@gmail.com",
+        }
+      );
+      
+      toast({
+        title: "Message envoyé",
+        description: "Nous vous répondrons dans les plus brefs délais.",
+      });
+      
+      setFormData({
+        nameOrPseudo: "",
+        age: "",
+        height: "",
+        weight: "",
+        experienceLevel: "",
+        desiredPractices: "",
+        limits: "",
+        fetishSpecification: "",
+        email: "",
+        phone: "",
+        contactPreference: "",
+        sessionDuration: "",
+      });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'envoi du formulaire. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string, field?: string) => {
@@ -226,7 +273,7 @@ const Contact = () => {
             </div>
 
             <Button type="submit" className="w-full">
-              Envoyer
+              {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : "Envoyer"}
             </Button>
           </form>
         </CardContent>

@@ -38,6 +38,23 @@ export interface ExcludedPractice {
   name: string;
 }
 
+export interface ContactFormData {
+  id: string;
+  nameOrPseudo: string;
+  age: string;
+  height: string;
+  weight: string;
+  experienceLevel: string;
+  desiredPractices: string;
+  limits: string;
+  fetishSpecification: string;
+  email: string;
+  phone: string;
+  contactPreference: string;
+  sessionDuration: string;
+  createdAt: string;
+}
+
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where } from 'firebase/firestore';
 
@@ -48,6 +65,7 @@ const galleryCollection = collection(db, 'gallery');
 const servicesCollection = collection(db, 'services');
 const excludedPracticesCollection = collection(db, 'excludedPractices');
 const carouselImagesCollection = collection(db, 'carouselImages');
+const contactFormsCollection = collection(db, 'contactForms');
 
 // Practices-related functions
 export const getPractices = async (): Promise<Practice[]> => {
@@ -299,6 +317,66 @@ export const deleteCarouselImage = async (id: string): Promise<void> => {
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Erreur lors de la suppression de l'image du carousel:", error);
+    throw error;
+  }
+};
+
+// Contact form related functions
+export const saveContactForm = async (formData: Omit<ContactFormData, "id" | "createdAt">): Promise<string> => {
+  try {
+    const dataToSave = {
+      ...formData,
+      createdAt: new Date().toISOString()
+    };
+    
+    const docRef = await addDoc(contactFormsCollection, dataToSave);
+    return docRef.id;
+  } catch (error) {
+    console.error("Erreur lors de l'enregistrement du formulaire de contact:", error);
+    throw error;
+  }
+};
+
+export const getContactForms = async (): Promise<ContactFormData[]> => {
+  try {
+    const q = query(contactFormsCollection, orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id
+      } as ContactFormData;
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des formulaires de contact:", error);
+    return [];
+  }
+};
+
+export const getContactFormById = async (id: string): Promise<ContactFormData | null> => {
+  try {
+    const docRef = doc(contactFormsCollection, id);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return { ...docSnap.data(), id: docSnap.id } as ContactFormData;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération du formulaire de contact:", error);
+    throw error;
+  }
+};
+
+export const deleteContactForm = async (id: string): Promise<void> => {
+  try {
+    const docRef = doc(contactFormsCollection, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Erreur lors de la suppression du formulaire de contact:", error);
     throw error;
   }
 };
