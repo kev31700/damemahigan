@@ -1,7 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
-import { Practice, Testimonial } from './storage';
+import { Practice, Testimonial, GalleryImage, Service, ExcludedPractice } from './storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBANj7xlVOPEv8HawCprWQf1lNB5sejDFU",
@@ -20,6 +20,9 @@ export const db = getFirestore(app);
 // Collection references
 const practicesCollection = collection(db, 'practices');
 const testimonialsCollection = collection(db, 'testimonials');
+const galleryCollection = collection(db, 'gallery');
+const servicesCollection = collection(db, 'services');
+const excludedPracticesCollection = collection(db, 'excludedPractices');
 
 // Initial data for first-time setup
 const initialPractices: Practice[] = [
@@ -216,6 +219,101 @@ const initialTestimonials: Testimonial[] = [
   }
 ];
 
+const initialGalleryImages: GalleryImage[] = [
+  {
+    id: "1",
+    url: "/placeholder.svg",
+    title: "Image 1"
+  },
+  {
+    id: "2",
+    url: "/placeholder.svg",
+    title: "Image 2"
+  },
+  {
+    id: "3",
+    url: "/placeholder.svg",
+    title: "Image 3"
+  },
+  {
+    id: "4",
+    url: "/placeholder.svg",
+    title: "Image 4"
+  },
+  {
+    id: "5",
+    url: "/placeholder.svg",
+    title: "Image 5"
+  },
+  {
+    id: "6",
+    url: "/placeholder.svg",
+    title: "Image 6"
+  }
+];
+
+const initialServices: Service[] = [
+  {
+    id: "1",
+    name: "Lecture érotique",
+    price: "100€",
+    description: "30 à 45 minutes"
+  },
+  {
+    id: "2",
+    name: "Séance 1h",
+    price: "150€",
+    description: "Par séance"
+  },
+  {
+    id: "3",
+    name: "Séance 2h",
+    price: "250€",
+    description: "Par séance"
+  },
+  {
+    id: "4",
+    name: "Autre format",
+    price: "Sur devis",
+    description: "Contactez-nous pour plus d'informations"
+  }
+];
+
+const initialExcludedPractices: ExcludedPractice[] = [
+  {
+    id: "1",
+    name: "Uro"
+  },
+  {
+    id: "2",
+    name: "Scato"
+  },
+  {
+    id: "3",
+    name: "Age play"
+  },
+  {
+    id: "4",
+    name: "Fellation"
+  },
+  {
+    id: "5",
+    name: "Masturbation"
+  },
+  {
+    id: "6",
+    name: "Accès à mon corps/intimité"
+  },
+  {
+    id: "7",
+    name: "Nudité"
+  },
+  {
+    id: "8",
+    name: "Kidnapping"
+  }
+];
+
 // Helper function to initialize collections if they're empty
 export const initializeFirebase = async () => {
   try {
@@ -232,6 +330,30 @@ export const initializeFirebase = async () => {
       console.log("Initializing testimonials collection...");
       for (const testimonial of initialTestimonials) {
         await addDoc(testimonialsCollection, testimonial);
+      }
+    }
+
+    const gallerySnapshot = await getDocs(galleryCollection);
+    if (gallerySnapshot.empty) {
+      console.log("Initializing gallery collection...");
+      for (const image of initialGalleryImages) {
+        await addDoc(galleryCollection, image);
+      }
+    }
+
+    const servicesSnapshot = await getDocs(servicesCollection);
+    if (servicesSnapshot.empty) {
+      console.log("Initializing services collection...");
+      for (const service of initialServices) {
+        await addDoc(servicesCollection, service);
+      }
+    }
+
+    const excludedPracticesSnapshot = await getDocs(excludedPracticesCollection);
+    if (excludedPracticesSnapshot.empty) {
+      console.log("Initializing excluded practices collection...");
+      for (const practice of initialExcludedPractices) {
+        await addDoc(excludedPracticesCollection, practice);
       }
     }
   } catch (error) {

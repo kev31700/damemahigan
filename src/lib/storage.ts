@@ -1,4 +1,3 @@
-
 // Type definitions
 export interface Practice {
   id: string;
@@ -15,12 +14,33 @@ export interface Testimonial {
   response?: string;
 }
 
+export interface GalleryImage {
+  id: string;
+  url: string;
+  title: string;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  price: string;
+  description: string;
+}
+
+export interface ExcludedPractice {
+  id: string;
+  name: string;
+}
+
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where } from 'firebase/firestore';
 
 // Collection references
 const practicesCollection = collection(db, 'practices');
 const testimonialsCollection = collection(db, 'testimonials');
+const galleryCollection = collection(db, 'gallery');
+const servicesCollection = collection(db, 'services');
+const excludedPracticesCollection = collection(db, 'excludedPractices');
 
 // Practices-related functions
 export const getPractices = async (): Promise<Practice[]> => {
@@ -118,6 +138,124 @@ export const deleteTestimonial = async (id: string): Promise<void> => {
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Erreur lors de la suppression du témoignage:", error);
+    throw error;
+  }
+};
+
+// Gallery-related functions
+export const getGalleryImages = async (): Promise<GalleryImage[]> => {
+  try {
+    const snapshot = await getDocs(galleryCollection);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id
+      } as GalleryImage;
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des images:", error);
+    return [];
+  }
+};
+
+export const addGalleryImage = async (image: Omit<GalleryImage, "id">): Promise<void> => {
+  try {
+    await addDoc(galleryCollection, image);
+  } catch (error) {
+    console.error("Erreur lors de l'ajout d'une image:", error);
+    throw error;
+  }
+};
+
+export const deleteGalleryImage = async (id: string): Promise<void> => {
+  try {
+    const docRef = doc(galleryCollection, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'image:", error);
+    throw error;
+  }
+};
+
+// Services (pricing) related functions
+export const getServices = async (): Promise<Service[]> => {
+  try {
+    const snapshot = await getDocs(servicesCollection);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id
+      } as Service;
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des services:", error);
+    return [];
+  }
+};
+
+export const addService = async (service: Omit<Service, "id">): Promise<void> => {
+  try {
+    await addDoc(servicesCollection, service);
+  } catch (error) {
+    console.error("Erreur lors de l'ajout d'un service:", error);
+    throw error;
+  }
+};
+
+export const updateService = async (id: string, service: Omit<Service, "id">): Promise<void> => {
+  try {
+    const docRef = doc(servicesCollection, id);
+    await updateDoc(docRef, service);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du service:", error);
+    throw error;
+  }
+};
+
+export const deleteService = async (id: string): Promise<void> => {
+  try {
+    const docRef = doc(servicesCollection, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Erreur lors de la suppression du service:", error);
+    throw error;
+  }
+};
+
+// Excluded practices (limits) related functions
+export const getExcludedPractices = async (): Promise<ExcludedPractice[]> => {
+  try {
+    const snapshot = await getDocs(excludedPracticesCollection);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id
+      } as ExcludedPractice;
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des pratiques exclues:", error);
+    return [];
+  }
+};
+
+export const addExcludedPractice = async (practice: { name: string }): Promise<void> => {
+  try {
+    await addDoc(excludedPracticesCollection, practice);
+  } catch (error) {
+    console.error("Erreur lors de l'ajout d'une pratique exclue:", error);
+    throw error;
+  }
+};
+
+export const deleteExcludedPractice = async (id: string): Promise<void> => {
+  try {
+    const docRef = doc(excludedPracticesCollection, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la pratique exclue:", error);
     throw error;
   }
 };

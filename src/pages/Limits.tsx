@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,23 +13,48 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Plus, Trash } from "lucide-react";
+import { ExcludedPractice, getExcludedPractices, addExcludedPractice, deleteExcludedPractice } from "@/lib/storage";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Limits = () => {
   const { isAdmin } = useAdmin();
   const [newPractice, setNewPractice] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  // État local pour stocker les pratiques exclues
-  const [excludedPractices, setExcludedPractices] = useState([
-    "Uro",
-    "Scato",
-    "Age play",
-    "Fellation",
-    "Masturbation",
-    "Accès à mon corps/intimité",
-    "Nudité",
-    "Kidnapping"
-  ]);
+  // Fetch excluded practices from Firebase
+  const { data: excludedPractices = [], isLoading, error } = useQuery({
+    queryKey: ['excludedPractices'],
+    queryFn: getExcludedPractices
+  });
+
+  // Add practice mutation
+  const addPracticeMutation = useMutation({
+    mutationFn: addExcludedPractice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['excludedPractices'] });
+      setNewPractice("");
+      setDialogOpen(false);
+      toast.success("Pratique ajoutée avec succès");
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de l'ajout de la pratique");
+      console.error(error);
+    }
+  });
+
+  // Delete practice mutation
+  const deletePracticeMutation = useMutation({
+    mutationFn: deleteExcludedPractice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['excludedPractices'] });
+      toast.success("Pratique supprimée avec succès");
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de la suppression de la pratique");
+      console.error(error);
+    }
+  });
 
   const addPractice = () => {
     if (!newPractice.trim()) {
@@ -37,23 +62,22 @@ const Limits = () => {
       return;
     }
 
-    if (excludedPractices.includes(newPractice)) {
+    if (excludedPractices.some(p => p.name === newPractice)) {
       toast.error("Cette pratique est déjà dans la liste");
       return;
     }
 
-    setExcludedPractices([...excludedPractices, newPractice]);
-    setNewPractice("");
-    setDialogOpen(false);
-    toast.success("Pratique ajoutée avec succès");
+    addPracticeMutation.mutate({ name: newPractice });
   };
 
-  const removePractice = (practice: string) => {
+  const removePractice = (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette pratique ?")) {
-      setExcludedPractices(excludedPractices.filter(p => p !== practice));
-      toast.success("Pratique supprimée avec succès");
+      deletePracticeMutation.mutate(id);
     }
   };
+
+  if (isLoading) return <div className="container mx-auto px-4 py-8 text-center">Chargement...</div>;
+  if (error) return <div className="container mx-auto px-4 py-8 text-center">Une erreur est survenue</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -103,15 +127,15 @@ const Limits = () => {
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {excludedPractices.map((practice) => (
                 <li 
-                  key={practice}
+                  key={practice.id}
                   className="flex items-center justify-between p-3 bg-muted rounded-lg"
                 >
-                  <span className="text-lg">{practice}</span>
+                  <span className="text-lg">{practice.name}</span>
                   {isAdmin && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removePractice(practice)}
+                      onClick={() => removePractice(practice.id)}
                       className="h-6 w-6"
                     >
                       <Trash className="h-4 w-4" />

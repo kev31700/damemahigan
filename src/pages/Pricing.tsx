@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Pencil, Plus, Trash } from "lucide-react";
+import { Service, getServices, addService, updateService, deleteService } from "@/lib/storage";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Pricing = () => {
   const { isAdmin } = useAdmin();
@@ -20,53 +22,72 @@ const Pricing = () => {
   const [newServicePrice, setNewServicePrice] = useState("");
   const [newServiceDescription, setNewServiceDescription] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingService, setEditingService] = useState<number | null>(null);
+  const [editingService, setEditingService] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  // État local pour stocker les services et tarifs
-  const [services, setServices] = useState([
-    {
-      id: 1,
-      name: "Lecture érotique",
-      price: "100€",
-      description: "30 à 45 minutes"
+  // Fetch services from Firebase
+  const { data: services = [], isLoading, error } = useQuery({
+    queryKey: ['services'],
+    queryFn: getServices
+  });
+
+  // Add service mutation
+  const addServiceMutation = useMutation({
+    mutationFn: addService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      resetForm();
+      setDialogOpen(false);
+      toast.success("Service ajouté avec succès");
     },
-    {
-      id: 2,
-      name: "Séance 1h",
-      price: "150€",
-      description: "Par séance"
-    },
-    {
-      id: 3,
-      name: "Séance 2h",
-      price: "250€",
-      description: "Par séance"
-    },
-    {
-      id: 4,
-      name: "Autre format",
-      price: "Sur devis",
-      description: "Contactez-nous pour plus d'informations"
+    onError: (error) => {
+      toast.error("Erreur lors de l'ajout du service");
+      console.error(error);
     }
-  ]);
+  });
 
-  const addService = () => {
+  // Update service mutation
+  const updateServiceMutation = useMutation({
+    mutationFn: ({ id, service }: { id: string; service: Omit<Service, "id"> }) => 
+      updateService(id, service),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      resetForm();
+      setDialogOpen(false);
+      toast.success("Service modifié avec succès");
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de la modification du service");
+      console.error(error);
+    }
+  });
+
+  // Delete service mutation
+  const deleteServiceMutation = useMutation({
+    mutationFn: deleteService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      toast.success("Service supprimé avec succès");
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de la suppression du service");
+      console.error(error);
+    }
+  });
+
+  const addNewService = () => {
     if (!newServiceName.trim() || !newServicePrice.trim()) {
       toast.error("Le nom et le prix du service sont requis");
       return;
     }
 
     const newService = {
-      id: services.length > 0 ? Math.max(...services.map(s => s.id)) + 1 : 1,
       name: newServiceName,
       price: newServicePrice,
       description: newServiceDescription || ""
     };
 
-    setServices([...services, newService]);
-    resetForm();
-    setDialogOpen(false);
-    toast.success("Service ajouté avec succès");
+    addServiceMutation.mutate(newService);
   };
 
   const editService = () => {
@@ -76,31 +97,22 @@ const Pricing = () => {
       return;
     }
 
-    const updatedServices = services.map(service => 
-      service.id === editingService 
-        ? {
-            ...service,
-            name: newServiceName,
-            price: newServicePrice,
-            description: newServiceDescription
-          }
-        : service
-    );
+    const updatedService = {
+      name: newServiceName,
+      price: newServicePrice,
+      description: newServiceDescription
+    };
 
-    setServices(updatedServices);
-    resetForm();
-    setDialogOpen(false);
-    toast.success("Service modifié avec succès");
+    updateServiceMutation.mutate({ id: editingService, service: updatedService });
   };
 
-  const removeService = (id: number) => {
+  const removeService = (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce service ?")) {
-      setServices(services.filter(service => service.id !== id));
-      toast.success("Service supprimé avec succès");
+      deleteServiceMutation.mutate(id);
     }
   };
 
-  const openEditDialog = (service: any) => {
+  const openEditDialog = (service: Service) => {
     setEditingService(service.id);
     setNewServiceName(service.name);
     setNewServicePrice(service.price);
@@ -114,6 +126,9 @@ const Pricing = () => {
     setNewServiceDescription("");
     setEditingService(null);
   };
+
+  if (isLoading) return <div className="container mx-auto px-4 py-8 text-center">Chargement...</div>;
+  if (error) return <div className="container mx-auto px-4 py-8 text-center">Une erreur est survenue</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -159,7 +174,7 @@ const Pricing = () => {
                   />
                 </div>
                 <Button 
-                  onClick={editingService !== null ? editService : addService} 
+                  onClick={editingService !== null ? editService : addNewService} 
                   className="w-full"
                 >
                   {editingService !== null ? "Modifier" : "Ajouter"}
