@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Lock, LogOut } from "lucide-react";
+import { Menu, X, Lock, LogOut, Key } from "lucide-react";
 import { useAdmin } from "@/contexts/AdminContext";
 import { 
   Dialog, 
@@ -11,12 +12,17 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
-  const { isAdmin, login, logout } = useAdmin();
+  const { isAdmin, login, logout, changePassword } = useAdmin();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const navItems = [
     { name: "Accueil", path: "/" },
@@ -32,6 +38,20 @@ const Navigation = () => {
     login(adminPassword);
     setAdminPassword("");
     setDialogOpen(false);
+  };
+
+  const handleChangePassword = () => {
+    if (newPassword !== confirmPassword) {
+      alert("Les nouveaux mots de passe ne correspondent pas");
+      return;
+    }
+
+    if (changePassword(oldPassword, newPassword)) {
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setChangePasswordDialogOpen(false);
+    }
   };
 
   return (
@@ -59,15 +79,68 @@ const Navigation = () => {
             </div>
             
             {isAdmin ? (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={logout}
-                className="ml-4 flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Déconnexion Admin</span>
-              </Button>
+              <div className="ml-4 flex items-center gap-2">
+                <Dialog open={changePasswordDialogOpen} onOpenChange={setChangePasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Key className="h-4 w-4" />
+                      <span>Changer MDP</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Changer le mot de passe administrateur</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="old-password">Ancien mot de passe</Label>
+                        <Input
+                          id="old-password"
+                          type="password"
+                          value={oldPassword}
+                          onChange={(e) => setOldPassword(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleChangePassword();
+                          }}
+                        />
+                      </div>
+                      <Button onClick={handleChangePassword} className="w-full">Changer le mot de passe</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={logout}
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Déconnexion Admin</span>
+                </Button>
+              </div>
             ) : (
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
@@ -104,14 +177,63 @@ const Navigation = () => {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             {isAdmin && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={logout}
-                className="mr-2"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center">
+                <Dialog open={changePasswordDialogOpen} onOpenChange={setChangePasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="mr-2"
+                    >
+                      <Key className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Changer le mot de passe administrateur</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="mobile-old-password">Ancien mot de passe</Label>
+                        <Input
+                          id="mobile-old-password"
+                          type="password"
+                          value={oldPassword}
+                          onChange={(e) => setOldPassword(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="mobile-new-password">Nouveau mot de passe</Label>
+                        <Input
+                          id="mobile-new-password"
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="mobile-confirm-password">Confirmer le mot de passe</Label>
+                        <Input
+                          id="mobile-confirm-password"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                      </div>
+                      <Button onClick={handleChangePassword} className="w-full">Changer le mot de passe</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={logout}
+                  className="mr-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
             )}
             
             {!isAdmin && (
