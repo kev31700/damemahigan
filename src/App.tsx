@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import Index from "@/pages/Index";
 import Practices from "@/pages/Practices";
 import PracticeDetail from "@/pages/PracticeDetail";
@@ -36,9 +37,9 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AdminProvider>
         <Router>
-          <div className="min-h-screen bg-background font-sans antialiased">
+          <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
             <Navigation />
-            <main className="pt-16 pb-12">
+            <main className="pt-16 pb-12 flex-grow">
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/pratiques" element={<Practices />} />
@@ -51,6 +52,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
+            <Footer />
             <Toaster />
           </div>
         </Router>
