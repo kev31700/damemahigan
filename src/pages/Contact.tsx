@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -270,7 +269,7 @@ const Contact = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="puppy" id="duration-puppy" />
-                  <Label htmlFor="duration-puppy">Séance Puppy (450€)</Label>
+                  <Label htmlFor="duration-puppy">Séance Puppy</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="custom" id="duration-custom" />

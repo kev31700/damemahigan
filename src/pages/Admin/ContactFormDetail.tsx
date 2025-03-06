@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAdmin } from "@/contexts/AdminContext";
@@ -98,7 +97,7 @@ const ContactFormDetail = () => {
     switch (value) {
       case "1h": return "1 heure";
       case "2h": return "2 heures";
-      case "puppy": return "Séance Puppy (450€)";
+      case "puppy": return "Séance Puppy";
       case "custom": return "Sur devis";
       default: return value;
     }
