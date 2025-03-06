@@ -1,4 +1,3 @@
-
 // Type definitions
 export interface Practice {
   id: string;
@@ -32,6 +31,7 @@ export interface Service {
   name: string;
   price: string;
   description: string;
+  position?: number;
 }
 
 export interface ExcludedPractice {
@@ -223,7 +223,16 @@ export const getServices = async (): Promise<Service[]> => {
 
 export const addService = async (service: Omit<Service, "id">): Promise<void> => {
   try {
-    await addDoc(servicesCollection, service);
+    const snapshot = await getDocs(servicesCollection);
+    const count = snapshot.size;
+    
+    // Set position to the end of the list by default
+    const serviceWithPosition = {
+      ...service,
+      position: service.position !== undefined ? service.position : count
+    };
+    
+    await addDoc(servicesCollection, serviceWithPosition);
   } catch (error) {
     console.error("Erreur lors de l'ajout d'un service:", error);
     throw error;
@@ -236,6 +245,22 @@ export const updateService = async (id: string, service: Omit<Service, "id">): P
     await updateDoc(docRef, service);
   } catch (error) {
     console.error("Erreur lors de la mise à jour du service:", error);
+    throw error;
+  }
+};
+
+export const updateServicesOrder = async (orderedServices: { id: string, position: number }[]): Promise<void> => {
+  try {
+    const batch = db.batch();
+    
+    orderedServices.forEach(service => {
+      const docRef = doc(servicesCollection, service.id);
+      batch.update(docRef, { position: service.position });
+    });
+    
+    await batch.commit();
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de l'ordre des services:", error);
     throw error;
   }
 };

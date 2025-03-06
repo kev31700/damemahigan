@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,8 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from "@/components/ui/dialog";
-import { Pencil, Plus, Trash } from "lucide-react";
-import { Service, getServices, addService, updateService, deleteService } from "@/lib/storage";
+import { Pencil, Plus, Trash, GripVertical } from "lucide-react";
+import { Service, getServices, addService, updateService, deleteService, updateServicesOrder } from "@/lib/storage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Pricing = () => {
@@ -22,6 +23,8 @@ const Pricing = () => {
   const [newServiceDescription, setNewServiceDescription] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedService, setDraggedService] = useState<Service | null>(null);
   const queryClient = useQueryClient();
 
   const { data: services = [], isLoading, error } = useQuery({
@@ -66,6 +69,18 @@ const Pricing = () => {
     },
     onError: (error) => {
       toast.error("Erreur lors de la suppression du service");
+      console.error(error);
+    }
+  });
+
+  const updateOrderMutation = useMutation({
+    mutationFn: updateServicesOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      toast.success("Ordre des services mis à jour");
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de la mise à jour de l'ordre");
       console.error(error);
     }
   });
@@ -122,11 +137,76 @@ const Pricing = () => {
     setEditingService(null);
   };
 
+  // Sort services based on position or place puppy services at the end
   const sortedServices = [...services].sort((a, b) => {
+    // If both have positions, sort by position
+    if (a.position !== undefined && b.position !== undefined) {
+      return a.position - b.position;
+    }
+    
+    // If only one has position, prioritize the one with position
+    if (a.position !== undefined) return -1;
+    if (b.position !== undefined) return 1;
+    
+    // If neither have position, use the puppy logic as fallback
     if (a.name.toLowerCase().includes('puppy')) return 1;
     if (b.name.toLowerCase().includes('puppy')) return -1;
     return 0;
   });
+
+  const handleDragStart = (service: Service) => {
+    if (!isAdmin) return;
+    setIsDragging(true);
+    setDraggedService(service);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetService: Service) => {
+    if (!isAdmin || !draggedService) return;
+    e.preventDefault();
+  };
+
+  const handleDrop = (targetService: Service) => {
+    if (!isAdmin || !draggedService) return;
+    
+    if (draggedService.id === targetService.id) {
+      setIsDragging(false);
+      setDraggedService(null);
+      return;
+    }
+
+    // Create a new array with updated positions
+    const updatedServices = sortedServices.map((service, index) => ({
+      id: service.id,
+      position: index
+    }));
+
+    // Find the indices of the dragged and target services
+    const draggedIndex = updatedServices.findIndex(s => s.id === draggedService.id);
+    const targetIndex = updatedServices.findIndex(s => s.id === targetService.id);
+
+    // Remove the dragged service from its original position
+    const [draggedItem] = updatedServices.splice(draggedIndex, 1);
+    
+    // Insert it at the target position
+    updatedServices.splice(targetIndex, 0, draggedItem);
+
+    // Re-assign positions
+    const reorderedServices = updatedServices.map((service, index) => ({
+      id: service.id,
+      position: index
+    }));
+
+    // Update the order in the database
+    updateOrderMutation.mutate(reorderedServices);
+    
+    setIsDragging(false);
+    setDraggedService(null);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setDraggedService(null);
+  };
 
   if (isLoading) return <div className="container mx-auto px-4 py-8 text-center">Chargement...</div>;
   if (error) return <div className="container mx-auto px-4 py-8 text-center">Une erreur est survenue</div>;
@@ -186,10 +266,29 @@ const Pricing = () => {
         )}
       </div>
       
+      {isAdmin && (
+        <div className="mb-4 p-4 bg-yellow-50 rounded-md">
+          <p className="text-amber-800">Mode Admin: Vous pouvez réorganiser les services en les glissant et déposant.</p>
+        </div>
+      )}
+      
       <div className="grid gap-6 md:grid-cols-3">
         {sortedServices.map((service) => (
-          <Card key={service.id} className="relative">
-            <CardHeader>
+          <Card 
+            key={service.id} 
+            className={`relative ${isDragging && draggedService?.id === service.id ? 'opacity-50' : ''}`}
+            draggable={isAdmin}
+            onDragStart={() => handleDragStart(service)}
+            onDragOver={(e) => handleDragOver(e, service)}
+            onDrop={() => handleDrop(service)}
+            onDragEnd={handleDragEnd}
+          >
+            {isAdmin && (
+              <div className="absolute top-0 left-0 w-full h-8 cursor-move flex items-center justify-center bg-gray-100 rounded-t-lg">
+                <GripVertical className="h-4 w-4 text-gray-500" />
+              </div>
+            )}
+            <CardHeader className={isAdmin ? 'pt-10' : ''}>
               <CardTitle>{service.name}</CardTitle>
             </CardHeader>
             <CardContent>
