@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,13 +24,11 @@ const Pricing = () => {
   const [editingService, setEditingService] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch services from Firebase
   const { data: services = [], isLoading, error } = useQuery({
     queryKey: ['services'],
     queryFn: getServices
   });
 
-  // Add service mutation
   const addServiceMutation = useMutation({
     mutationFn: addService,
     onSuccess: () => {
@@ -46,7 +43,6 @@ const Pricing = () => {
     }
   });
 
-  // Update service mutation
   const updateServiceMutation = useMutation({
     mutationFn: ({ id, service }: { id: string; service: Omit<Service, "id"> }) => 
       updateService(id, service),
@@ -62,7 +58,6 @@ const Pricing = () => {
     }
   });
 
-  // Delete service mutation
   const deleteServiceMutation = useMutation({
     mutationFn: deleteService,
     onSuccess: () => {
@@ -127,6 +122,12 @@ const Pricing = () => {
     setEditingService(null);
   };
 
+  const sortedServices = [...services].sort((a, b) => {
+    if (a.name.toLowerCase().includes('puppy')) return 1;
+    if (b.name.toLowerCase().includes('puppy')) return -1;
+    return 0;
+  });
+
   if (isLoading) return <div className="container mx-auto px-4 py-8 text-center">Chargement...</div>;
   if (error) return <div className="container mx-auto px-4 py-8 text-center">Une erreur est survenue</div>;
 
@@ -186,7 +187,7 @@ const Pricing = () => {
       </div>
       
       <div className="grid gap-6 md:grid-cols-3">
-        {services.map((service) => (
+        {sortedServices.map((service) => (
           <Card key={service.id} className="relative">
             <CardHeader>
               <CardTitle>{service.name}</CardTitle>
