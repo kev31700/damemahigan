@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { saveContactForm } from "@/lib/storage";
 import { Loader2 } from "lucide-react";
 import emailjs from 'emailjs-com';
+import { useAdmin } from "@/contexts/AdminContext";
 
 const EMAILJS_SERVICE_ID = "service_0f9n6tj";
 const EMAILJS_TEMPLATE_ID = "template_2kx66e9";
@@ -17,6 +19,7 @@ const EMAILJS_USER_ID = "oDx-jv8_vOqJh7Pso";
 
 const Contact = () => {
   const { toast } = useToast();
+  const { isAdmin } = useAdmin();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     nameOrPseudo: "",
@@ -264,6 +267,10 @@ const Contact = () => {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="2h" id="duration-2h" />
                   <Label htmlFor="duration-2h">2 heures</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="puppy" id="duration-puppy" />
+                  <Label htmlFor="duration-puppy">Séance Puppy (450€)</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="custom" id="duration-custom" />

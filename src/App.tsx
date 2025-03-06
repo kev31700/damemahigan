@@ -14,6 +14,8 @@ import Gallery from "@/pages/Gallery";
 import Testimonials from "@/pages/Testimonials";
 import Limits from "@/pages/Limits";
 import NotFound from "@/pages/NotFound";
+import ContactForms from "@/pages/Admin/ContactForms";
+import ContactFormDetail from "@/pages/Admin/ContactFormDetail";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { initializeFirebase } from "./lib/firebase";
 
@@ -49,6 +51,8 @@ const App = () => {
                 <Route path="/galerie" element={<Gallery />} />
                 <Route path="/temoignages" element={<Testimonials />} />
                 <Route path="/limites" element={<Limits />} />
+                <Route path="/admin/contact-forms" element={<ContactForms />} />
+                <Route path="/admin/contact-forms/:id" element={<ContactFormDetail />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
