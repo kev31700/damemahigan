@@ -1,3 +1,4 @@
+
 // Type definitions
 export interface Practice {
   id: string;
@@ -57,7 +58,7 @@ export interface ContactFormData {
 }
 
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, writeBatch } from 'firebase/firestore';
 
 // Collection references
 const practicesCollection = collection(db, 'practices');
@@ -251,7 +252,7 @@ export const updateService = async (id: string, service: Omit<Service, "id">): P
 
 export const updateServicesOrder = async (orderedServices: { id: string, position: number }[]): Promise<void> => {
   try {
-    const batch = db.batch();
+    const batch = writeBatch(db);
     
     orderedServices.forEach(service => {
       const docRef = doc(servicesCollection, service.id);
