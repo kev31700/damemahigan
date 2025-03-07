@@ -8,9 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { saveContactForm } from "@/lib/storage";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 import emailjs from 'emailjs-com';
 import { useAdmin } from "@/contexts/AdminContext";
+import { useNavigate } from "react-router-dom";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
 
 const EMAILJS_SERVICE_ID = "service_0f9n6tj";
 const EMAILJS_TEMPLATE_ID = "template_2kx66e9";
@@ -19,7 +27,9 @@ const EMAILJS_USER_ID = "oDx-jv8_vOqJh7Pso";
 const Contact = () => {
   const { toast } = useToast();
   const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [formData, setFormData] = useState({
     nameOrPseudo: "",
     age: "",
@@ -38,6 +48,21 @@ const Contact = () => {
   useEffect(() => {
     emailjs.init(EMAILJS_USER_ID);
   }, []);
+
+  useEffect(() => {
+    let redirectTimer: number | undefined;
+    
+    if (showSuccessDialog) {
+      redirectTimer = window.setTimeout(() => {
+        setShowSuccessDialog(false);
+        navigate("/");
+      }, 10000);
+    }
+    
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
+  }, [showSuccessDialog, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +91,6 @@ const Contact = () => {
         }
       );
       
-      toast({
-        title: "Message envoyé",
-        description: "Nous vous répondrons dans les plus brefs délais.",
-      });
-      
       setFormData({
         nameOrPseudo: "",
         age: "",
@@ -85,6 +105,8 @@ const Contact = () => {
         contactPreference: "",
         sessionDuration: "",
       });
+      
+      setShowSuccessDialog(true);
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -284,6 +306,25 @@ const Contact = () => {
           </form>
         </CardContent>
       </Card>
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="text-green-500 h-6 w-6" />
+              Formulaire envoyé avec succès
+            </DialogTitle>
+            <DialogDescription>
+              Votre formulaire a bien été envoyé. Nous vous répondrons dans les plus brefs délais.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center mt-4">
+            <p className="text-sm text-muted-foreground">
+              Vous serez redirigé vers la page d'accueil dans quelques secondes...
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
