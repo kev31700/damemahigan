@@ -1,4 +1,3 @@
-
 // Type definitions
 export interface Practice {
   id: string;
@@ -117,6 +116,40 @@ export const getPracticeById = async (id: string): Promise<Practice | null> => {
     }
   } catch (error) {
     console.error("Erreur lors de la récupération de la pratique:", error);
+    throw error;
+  }
+};
+
+// Function to detect and remove duplicate practices based on title
+export const removeDuplicatePractices = async (): Promise<number> => {
+  try {
+    const practices = await getPractices();
+    const uniqueTitles = new Set<string>();
+    const duplicates: string[] = [];
+    
+    // Find duplicates
+    practices.forEach(practice => {
+      if (uniqueTitles.has(practice.title.toLowerCase())) {
+        duplicates.push(practice.id);
+      } else {
+        uniqueTitles.add(practice.title.toLowerCase());
+      }
+    });
+    
+    // Delete duplicates
+    const batch = writeBatch(db);
+    duplicates.forEach(id => {
+      const docRef = doc(practicesCollection, id);
+      batch.delete(docRef);
+    });
+    
+    if (duplicates.length > 0) {
+      await batch.commit();
+    }
+    
+    return duplicates.length;
+  } catch (error) {
+    console.error("Erreur lors de la suppression des doublons:", error);
     throw error;
   }
 };
