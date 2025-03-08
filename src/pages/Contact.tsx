@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -51,10 +50,10 @@ const Contact = () => {
   }, []);
 
   useEffect(() => {
-    let redirectTimer: number | undefined;
+    let redirectTimer;
     
     if (showSuccessDialog) {
-      redirectTimer = window.setTimeout(() => {
+      redirectTimer = setTimeout(() => {
         setShowSuccessDialog(false);
         navigate("/");
       }, 10000);
@@ -65,32 +64,37 @@ const Contact = () => {
     };
   }, [showSuccessDialog, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
     try {
       const formId = await saveContactForm(formData);
       console.log("Form saved to Firebase with ID:", formId);
       
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        {
-          name: formData.nameOrPseudo,
-          age: formData.age,
-          height: formData.height,
-          weight: formData.weight,
-          experience_level: formData.experienceLevel,
-          desired_practices: formData.desiredPractices,
-          limits: formData.limits,
-          fetish_specification: formData.fetishSpecification || "Non spécifié",
-          email: formData.email,
-          phone: formData.phone,
-          contact_preference: formData.contactPreference,
-          session_duration: formData.sessionDuration,
-          recipient: "l.j.mahigan@gmail.com",
-        }
-      );
+      try {
+        await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          {
+            name: formData.nameOrPseudo,
+            age: formData.age,
+            height: formData.height,
+            weight: formData.weight,
+            experience_level: formData.experienceLevel,
+            desired_practices: formData.desiredPractices,
+            limits: formData.limits,
+            fetish_specification: formData.fetishSpecification || "Non spécifié",
+            email: formData.email,
+            phone: formData.phone,
+            contact_preference: formData.contactPreference,
+            session_duration: formData.sessionDuration,
+            recipient: "l.j.mahigan@gmail.com",
+          }
+        );
+      } catch (emailError) {
+        console.error("Error sending email:", emailError);
+      }
       
       setFormData({
         nameOrPseudo: "",
@@ -108,6 +112,7 @@ const Contact = () => {
       });
       
       setShowSuccessDialog(true);
+      
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -120,7 +125,7 @@ const Contact = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string, field?: string) => {
+  const handleChange = (e, field) => {
     if (typeof e === "string" && field) {
       setFormData((prev) => ({ ...prev, [field]: e }));
     } else if (typeof e !== "string") {
@@ -130,7 +135,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4">
+    <div className="max-w-2xl mx-auto px-4 pb-12">
       <Card>
         <CardHeader>
           <CardTitle>Contactez-nous</CardTitle>
@@ -301,7 +306,7 @@ const Contact = () => {
               </RadioGroup>
             </div>
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : "Envoyer"}
             </Button>
           </form>
