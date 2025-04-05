@@ -1,36 +1,49 @@
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { saveContactForm } from "@/lib/storage";
-import { Loader2, CheckCircle } from "lucide-react";
-import emailjs from 'emailjs-com';
-import { useAdmin } from "@/contexts/AdminContext";
-import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { validateEmail } from "@/lib/utils";
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
+import { sendEmail } from "@/lib/emailUtils";
+import { saveContactForm } from "@/lib/storage";
+import { ArrowRight } from "lucide-react";
 
-const EMAILJS_SERVICE_ID = "service_0f9n6tj";
-const EMAILJS_TEMPLATE_ID = "template_2kx66e9";
-const EMAILJS_USER_ID = "oDx-jv8_vOqJh7Pso";
+interface FormData {
+  nameOrPseudo: string;
+  age: string;
+  height: string;
+  weight: string;
+  experienceLevel: string;
+  desiredPractices: string;
+  limits: string;
+  fetishSpecification: string;
+  email: string;
+  phone: string;
+  contactPreference: string;
+  sessionDuration: string;
+}
 
 const Contact = () => {
-  const { toast } = useToast();
-  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     nameOrPseudo: "",
     age: "",
     height: "",
@@ -42,273 +55,311 @@ const Contact = () => {
     email: "",
     phone: "",
     contactPreference: "",
-    sessionDuration: "",
+    sessionDuration: ""
   });
 
-  useEffect(() => {
-    emailjs.init(EMAILJS_USER_ID);
-  }, []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-  useEffect(() => {
-    let redirectTimer;
-    
-    if (showSuccessDialog) {
-      redirectTimer = setTimeout(() => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleRadioChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const validateForm = (): boolean => {
+    // Vérifier les champs obligatoires
+    const requiredFields: (keyof FormData)[] = [
+      "nameOrPseudo", "age", "height", "weight", "experienceLevel",
+      "desiredPractices", "limits", "email", "phone", "contactPreference", "sessionDuration"
+    ];
+
+    for (const field of requiredFields) {
+      if (!formData[field].trim()) {
+        toast.error(`Le champ "${field}" est obligatoire`);
+        return false;
+      }
+    }
+
+    // Valider l'email
+    if (!validateEmail(formData.email)) {
+      toast.error("Veuillez entrer une adresse email valide");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Sauvegarder dans la base de données
+      await saveContactForm(formData);
+
+      // Envoyer l'email (optionnel)
+      try {
+        await sendEmail({
+          to_email: "contact@damemahigan.com",
+          to_name: "Dame Mahigan",
+          subject: `Nouvelle demande de contact de ${formData.nameOrPseudo}`,
+          message: `
+            Nom/Pseudo: ${formData.nameOrPseudo}
+            Âge: ${formData.age}
+            Taille: ${formData.height}
+            Poids: ${formData.weight}
+            Niveau d'expérience: ${formData.experienceLevel}
+            Pratiques souhaitées: ${formData.desiredPractices}
+            Limites: ${formData.limits}
+            Précisions fétichistes: ${formData.fetishSpecification || "Non spécifié"}
+            Email: ${formData.email}
+            Téléphone: ${formData.phone}
+            Préférence de contact: ${formData.contactPreference}
+            Durée de séance: ${formData.sessionDuration}
+          `
+        });
+      } catch (emailError) {
+        console.error("Erreur lors de l'envoi de l'email:", emailError);
+        // Continuer même si l'envoi d'email échoue
+      }
+
+      // Succès
+      setShowSuccessDialog(true);
+      
+      // Rediriger après 10 secondes
+      setTimeout(() => {
         setShowSuccessDialog(false);
         navigate("/");
       }, 10000);
-    }
-    
-    return () => {
-      if (redirectTimer) clearTimeout(redirectTimer);
-    };
-  }, [showSuccessDialog, navigate]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      const formId = await saveContactForm(formData);
-      console.log("Form saved to Firebase with ID:", formId);
-      
-      try {
-        await emailjs.send(
-          EMAILJS_SERVICE_ID,
-          EMAILJS_TEMPLATE_ID,
-          {
-            name: formData.nameOrPseudo,
-            age: formData.age,
-            height: formData.height,
-            weight: formData.weight,
-            experience_level: formData.experienceLevel,
-            desired_practices: formData.desiredPractices,
-            limits: formData.limits,
-            fetish_specification: formData.fetishSpecification || "Non spécifié",
-            email: formData.email,
-            phone: formData.phone,
-            contact_preference: formData.contactPreference,
-            session_duration: formData.sessionDuration,
-            recipient: "l.j.mahigan@gmail.com",
-          }
-        );
-      } catch (emailError) {
-        console.error("Error sending email:", emailError);
-      }
-      
-      setFormData({
-        nameOrPseudo: "",
-        age: "",
-        height: "",
-        weight: "",
-        experienceLevel: "",
-        desiredPractices: "",
-        limits: "",
-        fetishSpecification: "",
-        email: "",
-        phone: "",
-        contactPreference: "",
-        sessionDuration: "",
-      });
-      
-      setShowSuccessDialog(true);
-      
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi du formulaire. Veuillez réessayer.",
-        variant: "destructive",
-      });
+      console.error("Erreur lors de la soumission du formulaire:", error);
+      toast.error("Une erreur est survenue lors de l'envoi de votre demande");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (e, field) => {
-    if (typeof e === "string" && field) {
-      setFormData((prev) => ({ ...prev, [field]: e }));
-    } else if (typeof e !== "string") {
-      const { name, value } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
   return (
-    <div className="max-w-2xl mx-auto px-4 pb-12">
-      <Card>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        Contactez-moi
+      </h1>
+      
+      <div className="max-w-3xl mx-auto mb-8 text-center text-gray-600">
+        <p>
+          Pour prendre rendez-vous ou obtenir plus d'informations, veuillez remplir le formulaire ci-dessous.
+          Je vous répondrai dans les meilleurs délais.
+        </p>
+      </div>
+
+      <Card className="max-w-3xl mx-auto">
         <CardHeader>
-          <CardTitle>Contactez-nous</CardTitle>
+          <CardTitle>Formulaire de contact</CardTitle>
           <CardDescription>
-            Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.
+            Tous les champs marqués d'un astérisque (*) sont obligatoires
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="nameOrPseudo">Nom et prénom ou pseudo *</Label>
-              <Input
-                id="nameOrPseudo"
-                name="nameOrPseudo"
-                value={formData.nameOrPseudo}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="age">Âge *</Label>
-              <Input
-                id="age"
-                name="age"
-                type="number"
-                min="18"
-                value={formData.age}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Informations personnelles</h3>
+              
               <div className="space-y-2">
-                <Label htmlFor="height">Taille (cm) *</Label>
+                <Label htmlFor="nameOrPseudo">Nom ou Pseudo *</Label>
                 <Input
-                  id="height"
-                  name="height"
-                  type="number"
-                  value={formData.height}
+                  id="nameOrPseudo"
+                  name="nameOrPseudo"
+                  value={formData.nameOrPseudo}
                   onChange={handleChange}
-                  required
+                  placeholder="Votre nom ou pseudo"
                 />
               </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="age">Âge *</Label>
+                  <Input
+                    id="age"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    placeholder="Votre âge"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="height">Taille *</Label>
+                  <Input
+                    id="height"
+                    name="height"
+                    value={formData.height}
+                    onChange={handleChange}
+                    placeholder="Votre taille"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="weight">Poids *</Label>
+                  <Input
+                    id="weight"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleChange}
+                    placeholder="Votre poids"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Préférences de séance</h3>
+              
               <div className="space-y-2">
-                <Label htmlFor="weight">Poids (kg) *</Label>
-                <Input
-                  id="weight"
-                  name="weight"
-                  type="number"
-                  value={formData.weight}
+                <Label>Niveau d'expérience *</Label>
+                <RadioGroup
+                  value={formData.experienceLevel}
+                  onValueChange={(value) => handleRadioChange("experienceLevel", value)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Débutant" id="experience-beginner" />
+                    <Label htmlFor="experience-beginner">Débutant</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Intermédiaire" id="experience-intermediate" />
+                    <Label htmlFor="experience-intermediate">Intermédiaire</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Expérimenté" id="experience-advanced" />
+                    <Label htmlFor="experience-advanced">Expérimenté</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="desiredPractices">Pratiques souhaitées *</Label>
+                <Textarea
+                  id="desiredPractices"
+                  name="desiredPractices"
+                  value={formData.desiredPractices}
                   onChange={handleChange}
-                  required
+                  placeholder="Décrivez les pratiques que vous souhaitez explorer"
+                  className="min-h-[100px]"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="limits">Vos limites *</Label>
+                <Textarea
+                  id="limits"
+                  name="limits"
+                  value={formData.limits}
+                  onChange={handleChange}
+                  placeholder="Indiquez vos limites"
+                  className="min-h-[100px]"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="fetishSpecification">Précisions fétichistes (optionnel)</Label>
+                <Textarea
+                  id="fetishSpecification"
+                  name="fetishSpecification"
+                  value={formData.fetishSpecification}
+                  onChange={handleChange}
+                  placeholder="Si vous avez des intérêts fétichistes particuliers"
+                  className="min-h-[100px]"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Niveau d'expérience *</Label>
-              <Select name="experienceLevel" onValueChange={(value) => handleChange(value, "experienceLevel")} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionnez votre niveau" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="novice">Novice</SelectItem>
-                  <SelectItem value="intermediate">Intermédiaire</SelectItem>
-                  <SelectItem value="expert">Expert</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Coordonnées</h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Votre adresse email"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Téléphone *</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Votre numéro de téléphone"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Préférence de contact *</Label>
+                <RadioGroup
+                  value={formData.contactPreference}
+                  onValueChange={(value) => handleRadioChange("contactPreference", value)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Email" id="contact-email" />
+                    <Label htmlFor="contact-email">Email</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Téléphone" id="contact-phone" />
+                    <Label htmlFor="contact-phone">Téléphone</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Les deux" id="contact-both" />
+                    <Label htmlFor="contact-both">Les deux</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Durée de séance souhaitée *</Label>
+                <RadioGroup
+                  value={formData.sessionDuration}
+                  onValueChange={(value) => handleRadioChange("sessionDuration", value)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="1 heure" id="duration-1h" />
+                    <Label htmlFor="duration-1h">1 heure</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="2 heures" id="duration-2h" />
+                    <Label htmlFor="duration-2h">2 heures</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Plus" id="duration-more" />
+                    <Label htmlFor="duration-more">Plus (à discuter)</Label>
+                  </div>
+                </RadioGroup>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="desiredPractices">Pratiques désirées *</Label>
-              <Textarea
-                id="desiredPractices"
-                name="desiredPractices"
-                value={formData.desiredPractices}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="limits">Limites *</Label>
-              <Textarea
-                id="limits"
-                name="limits"
-                value={formData.limits}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="fetishSpecification">Spécification (fetish)</Label>
-              <Textarea
-                id="fetishSpecification"
-                name="fetishSpecification"
-                value={formData.fetishSpecification}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Numéro de téléphone *</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Préférence de contact *</Label>
-              <RadioGroup
-                onValueChange={(value) => handleChange(value, "contactPreference")}
-                required
+            <div className="pt-4">
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting}
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="email" id="contact-email" />
-                  <Label htmlFor="contact-email">Email</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="phone" id="contact-phone" />
-                  <Label htmlFor="contact-phone">Téléphone</Label>
-                </div>
-              </RadioGroup>
+                {isSubmitting ? "Envoi en cours..." : "Envoyer ma demande"}
+                {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
+              </Button>
             </div>
-
-            <div className="space-y-2">
-              <Label>Format horaire souhaité *</Label>
-              <RadioGroup
-                onValueChange={(value) => handleChange(value, "sessionDuration")}
-                required
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="1h" id="duration-1h" />
-                  <Label htmlFor="duration-1h">1 heure</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="2h" id="duration-2h" />
-                  <Label htmlFor="duration-2h">2 heures</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="puppy" id="duration-puppy" />
-                  <Label htmlFor="duration-puppy">Séance Puppy</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="custom" id="duration-custom" />
-                  <Label htmlFor="duration-custom">Sur devis</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : "Envoyer"}
-            </Button>
           </form>
         </CardContent>
       </Card>
@@ -316,19 +367,12 @@ const Contact = () => {
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="text-green-500 h-6 w-6" />
-              Formulaire envoyé avec succès
-            </DialogTitle>
+            <DialogTitle>Demande envoyée avec succès</DialogTitle>
             <DialogDescription>
-              Votre formulaire a bien été envoyé. Nous vous répondrons dans les plus brefs délais.
+              Merci pour votre message. Je vous répondrai dans les plus brefs délais.
+              Vous allez être redirigé vers la page d'accueil dans quelques secondes.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center mt-4">
-            <p className="text-sm text-muted-foreground">
-              Vous serez redirigé vers la page d'accueil dans quelques secondes...
-            </p>
-          </div>
         </DialogContent>
       </Dialog>
     </div>
