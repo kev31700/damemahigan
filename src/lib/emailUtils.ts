@@ -1,4 +1,33 @@
+/**
+ * Sends an email with the provided data
+ * @param emailData The data to send in the email
+ * @returns A promise that resolves when the email is sent
+ */
+export const sendEmail = async (emailData: {
+  to_email: string;
+  to_name: string;
+  subject: string;
+  message: string;
+}): Promise<boolean> => {
+  try {
+    // This is a stub function that will be replaced with actual email sending code
+    // when email service provider details are available
+    console.log("Email would be sent with the following data:", emailData);
+    
+    // For now, just simulate success
+    return true;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return false;
+  }
+};
 
+/**
+ * Sends an email notification with the provided data
+ * @param formData The data to send in the email
+ * @param recipientEmail The email address to send the notification to
+ * @returns A promise that resolves when the email is sent
+ */
 export const sendEmailNotification = async (
   formData: {
     nameOrPseudo: string;

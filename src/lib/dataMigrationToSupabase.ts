@@ -55,7 +55,11 @@ const migratePractices = async () => {
   
   // Insertion par lots
   for (const practice of practices) {
-    await supabase.from('practices').insert(practice);
+    const { error } = await supabase
+      .from('practices')
+      .insert(practice);
+      
+    if (error) console.error("Error inserting practice:", error);
   }
 };
 
@@ -76,7 +80,11 @@ const migrateTestimonials = async () => {
   
   // Insertion par lots
   for (const testimonial of testimonials) {
-    await supabase.from('testimonials').insert(testimonial);
+    const { error } = await supabase
+      .from('testimonials')
+      .insert(testimonial);
+      
+    if (error) console.error("Error inserting testimonial:", error);
   }
 };
 
@@ -96,7 +104,11 @@ const migrateGallery = async () => {
   
   // Insertion par lots
   for (const image of images) {
-    await supabase.from('gallery_images').insert(image);
+    const { error } = await supabase
+      .from('gallery_images')
+      .insert(image);
+      
+    if (error) console.error("Error inserting gallery image:", error);
   }
 };
 
@@ -118,7 +130,11 @@ const migrateServices = async () => {
   
   // Insertion par lots
   for (const service of services) {
-    await supabase.from('services').insert(service);
+    const { error } = await supabase
+      .from('services')
+      .insert(service);
+      
+    if (error) console.error("Error inserting service:", error);
   }
 };
 
@@ -137,7 +153,11 @@ const migrateExcludedPractices = async () => {
   
   // Insertion par lots
   for (const practice of practices) {
-    await supabase.from('excluded_practices').insert(practice);
+    const { error } = await supabase
+      .from('excluded_practices')
+      .insert(practice);
+      
+    if (error) console.error("Error inserting excluded practice:", error);
   }
 };
 
@@ -157,7 +177,11 @@ const migrateCarouselImages = async () => {
   
   // Insertion par lots
   for (const image of images) {
-    await supabase.from('carousel_images').insert(image);
+    const { error } = await supabase
+      .from('carousel_images')
+      .insert(image);
+      
+    if (error) console.error("Error inserting carousel image:", error);
   }
 };
 
@@ -188,6 +212,10 @@ const migrateContactForms = async () => {
   
   // Insertion par lots
   for (const form of forms) {
-    await supabase.from('contact_forms').insert(form);
+    const { error } = await supabase
+      .from('contact_forms')
+      .insert(form);
+      
+    if (error) console.error("Error inserting contact form:", error);
   }
 };
